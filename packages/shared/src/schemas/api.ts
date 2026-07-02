@@ -15,6 +15,12 @@ export const authResponseSchema = z.object({
 });
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 
+// 表示名更新などトークンを再発行しないユーザー操作のレスポンス。
+export const userResponseSchema = z.object({
+  user: userSchema,
+});
+export type UserResponse = z.infer<typeof userResponseSchema>;
+
 export const joinSessionInputSchema = z.object({
   inviteCode: z.string().min(1),
 });

@@ -15,3 +15,8 @@ export const registerUserInputSchema = z.object({
   displayName: z.string().min(1).max(50),
 });
 export type RegisterUserInput = z.infer<typeof registerUserInputSchema>;
+
+export const updateUserInputSchema = z.object({
+  displayName: z.string().min(1).max(50),
+});
+export type UpdateUserInput = z.infer<typeof updateUserInputSchema>;
