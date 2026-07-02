@@ -12,6 +12,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-config.resolver.disableHierarchicalLookup = true;
+// disableHierarchicalLookup は使わない。pnpm は推移的依存を .pnpm 内へ隔離するため階層探索が必須
 
 module.exports = config;
