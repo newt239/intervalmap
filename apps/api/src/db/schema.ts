@@ -6,7 +6,7 @@ import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   displayName: text("display_name").notNull(),
-  // 匿名デバイス認証のベアラートークン。アカウント連携は未決事項で handoff.md §9 参照。
+  // 匿名デバイス認証のベアラートークン。機種変更時の引き継ぎ方式は未決。
   authToken: text("auth_token").notNull().unique(),
   createdAt: integer("created_at").notNull(),
 });

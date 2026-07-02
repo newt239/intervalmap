@@ -77,7 +77,7 @@ pnpm --filter @intervalmap/api dev                # http://localhost:8787
 
 ## 実機での検証
 
-バックグラウンド位置・フォアグラウンドサービス・電池消費は実機でしか判定できない。検証項目と記録先は [docs/spike-location.md](docs/spike-location.md)。
+バックグラウンド位置・フォアグラウンドサービス・電池消費は実機でしか判定できない。
 
 ### EAS Build でインストールする（推奨）
 
@@ -105,4 +105,4 @@ dev client が Metro を見つけられない場合は、アプリ起動画面�
 ### 注意
 
 - **ネイティブ設定（`app.config.ts` の plugins / Info.plist / AndroidManifest）やネイティブ依存を変更したら dev client の再ビルドが必要。** JS のみの変更は Metro のリロードで反映される。
-- バックグラウンド検証は「追跡開始 → 画面オフで30分放置 → D1 に位置が届き続けるか」を軸に行い、結果を [docs/spike-location.md](docs/spike-location.md) に記録する。
+- バックグラウンド検証は「追跡開始 → 画面オフで30分放置 → D1 に位置が届き続けるか」を軸に行う。

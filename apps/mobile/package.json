@@ -8,7 +8,7 @@
     "ios": "expo run:ios",
     "prebuild": "expo prebuild",
     "start": "expo start --dev-client",
-    "test": "echo \"mobile: no unit tests yet (E2E は将来 Maestro を検討, docs/handoff.md §4)\"",
+    "test": "echo \"mobile: no unit tests yet. E2E は将来 Maestro を検討\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

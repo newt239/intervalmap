@@ -19,7 +19,7 @@ export type LocationTracker = {
   subscribe(listener: () => void): () => void;
 };
 
-// expo-location + expo-task-manager 実装。選定理由は docs/adr/0001-background-location.md。
+// expo-location + expo-task-manager 実装。Transistorsoft への差し替えを想定した抽象の下に置く。
 // 取得は連続・開示は間欠。取得間隔は短く保ち、送信は OS 側バッチングでまとめる。
 const createExpoLocationTracker = (): LocationTracker => {
   let status: TrackerStatus = "idle";
