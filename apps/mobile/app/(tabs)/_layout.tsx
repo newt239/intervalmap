@@ -1,6 +1,5 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 
-// ネイティブのボトムタブ。iOS: UITabBarController / Android: BottomNavigationView。
 export default function TabsLayout() {
   return (
     <NativeTabs>

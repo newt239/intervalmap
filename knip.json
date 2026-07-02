@@ -9,7 +9,7 @@
       "ignoreDependencies": ["cloudflare"]
     },
     "apps/mobile": {
-      "entry": ["src/components/*/index.{ios,android}.{ts,tsx}"],
+      "entry": ["src/components/ui/*/index.{ios,android}.{ts,tsx}"],
       "ignore": ["babel.config.js"],
       "ignoreDependencies": ["expo-updates", "expo-system-ui"]
     }

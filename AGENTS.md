@@ -71,7 +71,7 @@ newt239/next-template を踏襲する。
 ## モバイルの重要注意
 
 - **Expo Go では動かない**。必ず expo-dev-client + EAS Build を使う。
-- 位置取得層は `apps/mobile/src/features/location/` の `LocationTracker` インターフェースで抽象化済み。Transistorsoft 版への差し替えを想定。
+- 位置取得層は `apps/mobile/src/lib/location/` の `LocationTracker` インターフェースで抽象化済み。Transistorsoft 版への差し替えを想定。
 - **ネイティブ設定を変更したら EAS 再ビルドが必要**。`app.config.ts` plugins / Info.plist / AndroidManifest。PR 説明に明記すること。
 - Android は `ACCESS_BACKGROUND_LOCATION` を宣言せずフォアグラウンドサービスのみで検証中。`isAndroidBackgroundLocationEnabled: false`。
 
@@ -82,5 +82,6 @@ newt239/next-template を踏襲する。
 - **M2 の中核実装済み**: 匿名デバイス認証、セッション作成/参加/終了、位置バッチアップロード、開示ビュー、参加中セッション一覧 `GET /sessions`、移動履歴 `GET /sessions/:id/history`、共有・閲覧設定 `PATCH /sessions/:id/me`、毎分 Cron の開示・期限処理。不変条件のユニットテスト・統合テストあり。無応答アラートと開示プッシュは未実装。履歴は開示済みスナップショットの系列のみ返す。
 - メンバーごとに自分の位置の共有 `sharing_enabled` と他メンバーの位置の閲覧 `viewing_enabled` を制御できる。招待コードは共有参加用 `invite_code` と閲覧のみ参加用 `viewer_invite_code` の2種で、どちらで参加したかが初期共有状態を決める。以降は `PATCH /sessions/:id/me` で変更できる。共有オフ中のアップロード拒否と閲覧オフ時の秘匿はサーバー側で強制する。
 - モバイルはネイティブボトムタブ（ホーム・セッション一覧）で、セッション作成→参加→地図表示（開示カウントダウン付き）まで動線あり。セッション詳細は地図・カウントダウン・メンバー一覧・共有開始/停止ボタンのみで、招待は `app/session/[id]/invite.tsx`、共有設定は `app/session/[id]/settings.tsx`、メンバー詳細（最新開示位置と移動履歴ポリライン）は `app/session/[id]/member/[membershipId].tsx` に分離している。
-- UI は `apps/mobile/src/components/` の OS 別コンポーネントに統一済み。コンポーネントごとにディレクトリを持ち、`index.ios.tsx` が @expo/ui/swift-ui で HIG に、`index.android.tsx` が @expo/ui/jetpack-compose で Material 3 に合わせ、共有 Props は各ディレクトリの `types.ts` に置く。設定タブはメニューのみで、各設定は `app/settings/` の詳細ページで行う。実機での見た目の磨きは M6。
+- モバイルは3層構成。`app/` のページはルーティングのみの薄いシェルで、コンポーネント関数以外を書かない。画面の実実装は `src/components/block/` の単一ファイルコンポーネントに置き、非コンポーネントのロジックは `src/lib/` に置く。UI プリミティブは `src/components/ui/` で、コンポーネントごとにディレクトリを持ち、`index.ios.tsx` が @expo/ui/swift-ui で HIG に、`index.android.tsx` が @expo/ui/jetpack-compose で Material 3 に合わせ、共有 Props は各ディレクトリの `types.ts` に置く。OS 差が無いものは単一の `index.tsx` でよい。設定タブはメニューのみで、各設定は `app/settings/` の詳細ページで行う。実機での見た目の磨きは M6。
+- サーバー状態は @tanstack/react-query で扱い、複数画面で使うクエリは `src/lib/queries.ts`、単一画面のみのクエリ・ミューテーションは使用する block 内に置く。フォーム値は react-hook-form で管理する。時刻ティックや位置追跡ステータスは useSyncExternalStore ベースの購読フックで読み、useState / useEffect は原則使わない。
 - 不明点は [docs/handoff.md](docs/handoff.md) の該当セクション番号を引用して質問すること。

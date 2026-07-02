@@ -1,10 +1,13 @@
 import * as SecureStore from "expo-secure-store";
 
 import { apiFetch } from "#/lib/api-client";
+import { queryClient } from "#/lib/query-client";
 import { authResponseSchema, userResponseSchema } from "@intervalmap/shared";
 
 // 匿名デバイス認証の永続化。トークンは SecureStore にのみ保存する。
 const AUTH_KEY = "intervalmap-auth";
+
+export const authQueryKey = ["auth"] as const;
 
 export type StoredAuth = {
   token: string;
@@ -43,6 +46,7 @@ export const ensureRegistered = async (displayName: string): Promise<StoredAuth>
   await SecureStore.setItemAsync(AUTH_KEY, JSON.stringify(auth), {
     keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
   });
+  queryClient.setQueryData(authQueryKey, auth);
   return auth;
 };
 
@@ -61,5 +65,6 @@ export const updateDisplayName = async (displayName: string): Promise<StoredAuth
   await SecureStore.setItemAsync(AUTH_KEY, JSON.stringify(auth), {
     keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
   });
+  queryClient.setQueryData(authQueryKey, auth);
   return auth;
 };

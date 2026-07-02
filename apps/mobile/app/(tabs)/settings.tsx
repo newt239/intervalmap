@@ -1,10 +1,9 @@
 import { useRouter } from "expo-router";
 
-import { FormLink } from "#/components/form-link";
-import { FormScreen } from "#/components/form-screen";
-import { FormSection } from "#/components/form-section";
+import { FormLink } from "#/components/ui/form-link";
+import { FormScreen } from "#/components/ui/form-screen";
+import { FormSection } from "#/components/ui/form-section";
 
-// 設定タブ。メニューのみを置き、各設定は詳細ページで行う。
 export default function SettingsScreen() {
   const router = useRouter();
   return (
