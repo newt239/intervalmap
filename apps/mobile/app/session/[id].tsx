@@ -6,10 +6,14 @@ import { loadAuth } from "#/features/auth/auth-store";
 import { locationTracker } from "#/features/location";
 import { SessionMap } from "#/features/map/session-map";
 import { apiFetch } from "#/lib/api-client";
-import { mapResponseSchema, sessionDetailResponseSchema } from "@intervalmap/shared";
+import {
+  historyResponseSchema,
+  mapResponseSchema,
+  sessionDetailResponseSchema,
+} from "@intervalmap/shared";
 
 import type { StoredAuth } from "#/features/auth/auth-store";
-import type { MapResponse, SessionDetailResponse } from "@intervalmap/shared";
+import type { HistoryResponse, MapResponse, SessionDetailResponse } from "@intervalmap/shared";
 
 // 残り時間の表示フォーマット。負値は 0 に丸める。
 const formatCountdown = (ms: number): string => {
@@ -28,6 +32,8 @@ export default function SessionScreen() {
   const [auth, setAuth] = useState<StoredAuth | null>(null);
   const [detail, setDetail] = useState<SessionDetailResponse | null>(null);
   const [mapData, setMapData] = useState<MapResponse | null>(null);
+  const [history, setHistory] = useState<HistoryResponse | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
   // serverNow と端末時計の差。カウントダウンを端末時計に依存させないための補正値。
@@ -83,6 +89,17 @@ export default function SessionScreen() {
     }, delay);
     return () => clearTimeout(timer);
   }, [mapData, refresh]);
+
+  // 履歴表示中は開示の更新に合わせて取り直す。
+  const disclosedAt = mapData?.disclosedAt ?? null;
+  useEffect(() => {
+    if (!showHistory || !auth || !id || disclosedAt === null) {
+      return;
+    }
+    apiFetch(historyResponseSchema, `/sessions/${id}/history`, { token: auth.token })
+      .then(setHistory)
+      .catch(() => {});
+  }, [showHistory, auth, id, disclosedAt]);
 
   // カウントダウン表示用の1秒ティック。
   useEffect(() => {
@@ -180,9 +197,21 @@ export default function SessionScreen() {
         locations={mapData.locations}
         self={mapData.self}
         selfMembershipId={selfMembershipId}
+        tracks={showHistory ? (history?.tracks ?? []) : []}
       />
 
       <View style={styles.footer}>
+        <Pressable
+          style={styles.historyButton}
+          onPress={() => setShowHistory((visible) => !visible)}
+        >
+          <Text style={styles.historyButtonText}>
+            {showHistory ? "移動履歴を隠す" : "移動履歴を表示"}
+          </Text>
+        </Pressable>
+        {showHistory && (history?.tracks.length ?? 0) === 0 ? (
+          <Text style={styles.historyEmpty}>開示済みの履歴はまだありません</Text>
+        ) : null}
         {!ended &&
           (tracking ? (
             <Pressable style={styles.stopButton} onPress={stopSharing}>
@@ -226,6 +255,22 @@ const styles = StyleSheet.create({
   header: {
     gap: 4,
     padding: 16,
+  },
+  historyButton: {
+    alignItems: "center",
+    borderColor: "#555",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+  },
+  historyButtonText: {
+    color: "#555",
+    fontWeight: "bold",
+  },
+  historyEmpty: {
+    color: "#888",
+    fontSize: 12,
+    textAlign: "center",
   },
   inviteButton: {
     alignItems: "center",

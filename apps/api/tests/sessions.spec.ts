@@ -9,8 +9,10 @@ import { runScheduledTick } from "../src/domain/tick.ts";
 import type {
   AuthResponse,
   ErrorResponse,
+  HistoryResponse,
   MapResponse,
   SessionDetailResponse,
+  SessionListResponse,
   SessionWithMembershipResponse,
   UploadLocationsResponse,
 } from "@intervalmap/shared";
@@ -245,5 +247,103 @@ describe("期限と終了の不変条件", () => {
       method: "POST",
     });
     expect(endRes.status).toBe(403);
+  });
+});
+
+describe("参加中セッション一覧", () => {
+  it("参加中のセッションのみ自分の membership 付きで返す", async () => {
+    const owner = await registerUser("主催者");
+    const member = await registerUser("参加者");
+    const created = await createSession(owner.token);
+    await joinSession(member.token, created.session.inviteCode);
+    // member が参加していないセッションは一覧に出ない。
+    await createSession(owner.token);
+
+    const res = await authedFetch(member.token, "/sessions");
+    expect(res.status).toBe(200);
+    const list: SessionListResponse = await res.json();
+    expect(list.sessions).toHaveLength(1);
+    expect(list.sessions[0]?.session.id).toBe(created.session.id);
+    expect(list.sessions[0]?.membership.role).toBe("member");
+    expect(list.sessions[0]?.membership.displayName).toBe("参加者");
+
+    const ownerRes = await authedFetch(owner.token, "/sessions");
+    const ownerList: SessionListResponse = await ownerRes.json();
+    expect(ownerList.sessions).toHaveLength(2);
+    expect(ownerList.sessions.every((s) => s.membership.role === "owner")).toBe(true);
+  });
+
+  it("期限切れセッションを一覧でも ended として返す", async () => {
+    const owner = await registerUser("主催者");
+    const created = await createSession(owner.token);
+
+    const db = drizzle(env.DB);
+    await db
+      .update(sessions)
+      .set({ expiresAt: Date.now() - 1000 })
+      .where(eq(sessions.id, created.session.id));
+
+    const res = await authedFetch(owner.token, "/sessions");
+    const list: SessionListResponse = await res.json();
+    expect(list.sessions[0]?.session.status).toBe("ended");
+    expect(list.sessions[0]?.session.nextDisclosureAt).toBeNull();
+  });
+});
+
+describe("移動履歴の不変条件", () => {
+  const fetchHistory = async (token: string, sessionId: string): Promise<HistoryResponse> => {
+    const res = await authedFetch(token, `/sessions/${sessionId}/history`);
+    expect(res.status).toBe(200);
+    return res.json();
+  };
+
+  // 開示時刻を過去に倒して開示を1回発生させる。
+  const forceDisclosure = async (sessionId: string) => {
+    const db = drizzle(env.DB);
+    await db
+      .update(sessions)
+      .set({ nextDisclosureAt: Date.now() - 1000 })
+      .where(eq(sessions.id, sessionId));
+    await runScheduledTick(db, Date.now());
+  };
+
+  it("開示前は履歴を返さず、開示後は開示時点以前の点のみ返す", async () => {
+    const owner = await registerUser("主催者");
+    const member = await registerUser("参加者");
+    const created = await createSession(owner.token);
+    await joinSession(member.token, created.session.inviteCode);
+
+    await uploadPoint(member.token, created.session.id, 35, 139);
+
+    const before = await fetchHistory(owner.token, created.session.id);
+    expect(before.tracks).toHaveLength(0);
+
+    await forceDisclosure(created.session.id);
+
+    // 開示後の点は次の開示まで履歴に現れない。
+    await uploadPoint(member.token, created.session.id, 36, 140);
+
+    const after = await fetchHistory(owner.token, created.session.id);
+    expect(after.tracks).toHaveLength(1);
+    expect(after.tracks[0]?.points).toHaveLength(1);
+    expect(after.tracks[0]?.points[0]?.lat).toBe(35);
+
+    // 本人にも開示以降の点は返さない。
+    const own = await fetchHistory(member.token, created.session.id);
+    expect(own.tracks[0]?.points).toHaveLength(1);
+    expect(own.tracks[0]?.points[0]?.lat).toBe(35);
+
+    await forceDisclosure(created.session.id);
+    const replay = await fetchHistory(owner.token, created.session.id);
+    expect(replay.tracks[0]?.points.map((p) => p.lat)).toEqual([35, 36]);
+  });
+
+  it("メンバー外の履歴アクセスを 403 で拒否する", async () => {
+    const owner = await registerUser("主催者");
+    const outsider = await registerUser("部外者");
+    const created = await createSession(owner.token);
+
+    const res = await authedFetch(outsider.token, `/sessions/${created.session.id}/history`);
+    expect(res.status).toBe(403);
   });
 });

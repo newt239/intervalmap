@@ -31,3 +31,19 @@ export const disclosedLocationSchema = z.object({
   capturedAt: epochMsSchema,
 });
 export type DisclosedLocation = z.infer<typeof disclosedLocationSchema>;
+
+export const historyPointSchema = z.object({
+  disclosedAt: epochMsSchema,
+  capturedAt: epochMsSchema,
+  lat: latSchema,
+  lng: lngSchema,
+  accuracyM: z.number().nonnegative().nullable(),
+});
+
+// 1メンバーの移動履歴。開示済みスナップショットの系列のみで開示前の点は含まれない。
+export const historyTrackSchema = z.object({
+  membershipId: z.string(),
+  displayName: z.string(),
+  points: z.array(historyPointSchema),
+});
+export type HistoryTrack = z.infer<typeof historyTrackSchema>;

@@ -1,17 +1,20 @@
 import { AppleMaps, GoogleMaps } from "expo-maps";
 import { Platform, StyleSheet } from "react-native";
 
-import type { DisclosedLocation } from "@intervalmap/shared";
+import type { DisclosedLocation, HistoryTrack } from "@intervalmap/shared";
 
 type Props = {
   locations: DisclosedLocation[];
   self: DisclosedLocation | null;
   selfMembershipId: string | null;
+  tracks: HistoryTrack[];
 };
+
+const TRACK_COLORS = ["#2563eb", "#dc2626", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
 // 開示済みメンバー位置と自分の現在位置を表示する。iOS: Apple Maps / Android: Google Maps。
 // locations は最新開示時点の位置のみで、self だけが常に現在位置になる。
-export const SessionMap = ({ locations, self, selfMembershipId }: Props) => {
+export const SessionMap = ({ locations, self, selfMembershipId, tracks }: Props) => {
   const others = locations.filter((l) => l.membershipId !== selfMembershipId);
   const markers = [
     ...others.map((l) => ({
@@ -29,6 +32,14 @@ export const SessionMap = ({ locations, self, selfMembershipId }: Props) => {
         ]
       : []),
   ];
+  const polylines = tracks
+    .filter((t) => t.points.length >= 2)
+    .map((t, i) => ({
+      id: t.membershipId,
+      coordinates: t.points.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+      color: TRACK_COLORS[i % TRACK_COLORS.length] ?? "#2563eb",
+      width: 3,
+    }));
   const center = self ?? others[0] ?? null;
   const cameraPosition = {
     coordinates: {
@@ -39,9 +50,23 @@ export const SessionMap = ({ locations, self, selfMembershipId }: Props) => {
   };
 
   if (Platform.OS === "ios") {
-    return <AppleMaps.View style={styles.map} cameraPosition={cameraPosition} markers={markers} />;
+    return (
+      <AppleMaps.View
+        style={styles.map}
+        cameraPosition={cameraPosition}
+        markers={markers}
+        polylines={polylines}
+      />
+    );
   }
-  return <GoogleMaps.View style={styles.map} cameraPosition={cameraPosition} markers={markers} />;
+  return (
+    <GoogleMaps.View
+      style={styles.map}
+      cameraPosition={cameraPosition}
+      markers={markers}
+      polylines={polylines}
+    />
+  );
 };
 
 const styles = StyleSheet.create({

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { epochMsSchema, sessionStatusSchema } from "./common.ts";
-import { disclosedLocationSchema } from "./location.ts";
+import { disclosedLocationSchema, historyTrackSchema } from "./location.ts";
 import { membershipSchema } from "./membership.ts";
 import { sessionSchema } from "./session.ts";
 import { userSchema } from "./user.ts";
@@ -27,6 +27,17 @@ export const sessionWithMembershipResponseSchema = z.object({
 });
 export type SessionWithMembershipResponse = z.infer<typeof sessionWithMembershipResponseSchema>;
 
+export const sessionListResponseSchema = z.object({
+  serverNow: epochMsSchema,
+  sessions: z.array(
+    z.object({
+      session: sessionSchema,
+      membership: membershipSchema,
+    }),
+  ),
+});
+export type SessionListResponse = z.infer<typeof sessionListResponseSchema>;
+
 export const sessionDetailResponseSchema = z.object({
   session: sessionSchema,
   members: z.array(membershipSchema),
@@ -51,6 +62,13 @@ export const mapResponseSchema = z.object({
   self: disclosedLocationSchema.nullable(),
 });
 export type MapResponse = z.infer<typeof mapResponseSchema>;
+
+export const historyResponseSchema = z.object({
+  serverNow: epochMsSchema,
+  sessionStatus: sessionStatusSchema,
+  tracks: z.array(historyTrackSchema),
+});
+export type HistoryResponse = z.infer<typeof historyResponseSchema>;
 
 export const registerPushTokenInputSchema = z.object({
   expoPushToken: z.string().min(1),

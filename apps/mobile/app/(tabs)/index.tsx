@@ -2,6 +2,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { ensureRegistered, loadAuth } from "#/features/auth/auth-store";
 import { apiFetch } from "#/lib/api-client";
 import { sessionWithMembershipResponseSchema } from "@intervalmap/shared";
@@ -125,44 +127,47 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.sectionTitle}>あなたの表示名</Text>
-      <TextInput
-        style={styles.input}
-        value={displayName}
-        onChangeText={setDisplayName}
-        placeholder="例: たろう"
-        editable={!registered}
-      />
-      {registered ? <Text style={styles.note}>登録済みの表示名を使用します</Text> : null}
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.screenTitle}>intervalmap</Text>
+        <Text style={styles.sectionTitle}>あなたの表示名</Text>
+        <TextInput
+          style={styles.input}
+          value={displayName}
+          onChangeText={setDisplayName}
+          placeholder="例: たろう"
+          editable={!registered}
+        />
+        {registered ? <Text style={styles.note}>登録済みの表示名を使用します</Text> : null}
 
-      <Text style={styles.sectionTitle}>セッションを作成</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="セッション名（例: 鬼ごっこ）"
-      />
-      <Text style={styles.label}>開示インターバル</Text>
-      <OptionRow options={INTERVAL_OPTIONS} selected={intervalSec} onSelect={setIntervalSec} />
-      <Text style={styles.label}>有効期間（期限で追跡は自動停止）</Text>
-      <OptionRow options={DURATION_OPTIONS} selected={durationSec} onSelect={setDurationSec} />
-      <Pressable style={styles.primaryButton} onPress={onCreate} disabled={busy}>
-        <Text style={styles.primaryButtonText}>作成する</Text>
-      </Pressable>
+        <Text style={styles.sectionTitle}>セッションを作成</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="セッション名（例: 鬼ごっこ）"
+        />
+        <Text style={styles.label}>開示インターバル</Text>
+        <OptionRow options={INTERVAL_OPTIONS} selected={intervalSec} onSelect={setIntervalSec} />
+        <Text style={styles.label}>有効期間（期限で追跡は自動停止）</Text>
+        <OptionRow options={DURATION_OPTIONS} selected={durationSec} onSelect={setDurationSec} />
+        <Pressable style={styles.primaryButton} onPress={onCreate} disabled={busy}>
+          <Text style={styles.primaryButtonText}>作成する</Text>
+        </Pressable>
 
-      <Text style={styles.sectionTitle}>招待コードで参加</Text>
-      <TextInput
-        style={styles.input}
-        value={inviteCode}
-        onChangeText={setInviteCode}
-        placeholder="招待コード"
-        autoCapitalize="none"
-      />
-      <Pressable style={styles.secondaryButton} onPress={onJoin} disabled={busy}>
-        <Text style={styles.secondaryButtonText}>参加する</Text>
-      </Pressable>
-    </ScrollView>
+        <Text style={styles.sectionTitle}>招待コードで参加</Text>
+        <TextInput
+          style={styles.input}
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          placeholder="招待コード"
+          autoCapitalize="none"
+        />
+        <Pressable style={styles.secondaryButton} onPress={onJoin} disabled={busy}>
+          <Text style={styles.secondaryButtonText}>参加する</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -219,6 +224,13 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  safeArea: {
+    flex: 1,
+  },
+  screenTitle: {
+    fontSize: 24,
     fontWeight: "bold",
   },
   secondaryButton: {

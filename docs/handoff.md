@@ -80,12 +80,13 @@ alerts           id, session_id, membership_id, type, fired_at
 ```
 POST   /users                  匿名ユーザー登録（トークン発行）
 POST   /sessions               セッション作成（title, interval_sec, duration_sec, precision）
+GET    /sessions               参加中セッション一覧（自分の membership 付き）
 POST   /sessions/join          invite_code で参加
 GET    /sessions/:id           セッション詳細 + メンバー一覧
 POST   /sessions/:id/end       主催者による即時終了
 POST   /sessions/:id/locations 位置のバッチアップロード
 GET    /sessions/:id/map       最新開示時点の全メンバー位置 + next_disclosure_at
-GET    /sessions/:id/history   開示履歴（未実装。リプレイ用）
+GET    /sessions/:id/history   移動履歴（開示済みスナップショットの系列のみ。リプレイ用）
 PUT    /me/push-token          Expo Push token 登録（未実装）
 ```
 

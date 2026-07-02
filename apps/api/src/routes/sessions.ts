@@ -1,4 +1,4 @@
-import { and, desc, eq, lte } from "drizzle-orm";
+import { and, asc, desc, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
@@ -10,18 +10,21 @@ import {
 } from "@intervalmap/shared";
 
 import { disclosures, locationPoints, memberships, sessions, users } from "../db/schema.ts";
+import { buildDisclosedTrack } from "../domain/history.ts";
 import { jsonError } from "../lib/http-error.ts";
 import { requireAuth } from "../middleware/auth.ts";
 
-import type { MembershipRow, SessionRow } from "../db/schema.ts";
+import type { LocationPointRow, MembershipRow, SessionRow } from "../db/schema.ts";
 import type { AuthEnv } from "../middleware/auth.ts";
 
 import type {
   DisclosedLocation,
+  HistoryResponse,
   MapResponse,
   Membership,
   Session,
   SessionDetailResponse,
+  SessionListResponse,
   SessionWithMembershipResponse,
   UploadLocationsResponse,
 } from "@intervalmap/shared";
@@ -65,25 +68,36 @@ const toMembershipDto = (row: MembershipRow, displayName: string): Membership =>
   joinedAt: row.joinedAt,
 });
 
+// 期限・開始時刻からの権威的なステータス判定。期限判定は expires_at ちょうどを含む。無期限追跡は作らない。
+const resolveSessionStatus = (session: SessionRow, now: number): SessionRow["status"] => {
+  if (session.status !== "ended" && now >= session.expiresAt) {
+    return "ended";
+  }
+  if (session.status === "scheduled" && now >= session.startsAt) {
+    return "active";
+  }
+  return session.status;
+};
+
 // Cron の隙間でも期限後の追跡を許さないための遅延反映。不変条件の二重化。
 const reconcileSessionStatus = async (
   db: DrizzleD1Database,
   session: SessionRow,
   now: number,
 ): Promise<SessionRow> => {
-  // 期限判定は expires_at ちょうどを含む。無期限追跡は作らない。
-  if (session.status !== "ended" && now >= session.expiresAt) {
+  const resolved = resolveSessionStatus(session, now);
+  if (resolved === session.status) {
+    return session;
+  }
+  if (resolved === "ended") {
     await db
       .update(sessions)
       .set({ status: "ended", nextDisclosureAt: null })
       .where(eq(sessions.id, session.id));
     return { ...session, status: "ended", nextDisclosureAt: null };
   }
-  if (session.status === "scheduled" && now >= session.startsAt) {
-    await db.update(sessions).set({ status: "active" }).where(eq(sessions.id, session.id));
-    return { ...session, status: "active" };
-  }
-  return session;
+  await db.update(sessions).set({ status: resolved }).where(eq(sessions.id, session.id));
+  return { ...session, status: resolved };
 };
 
 const findSessionById = async (db: DrizzleD1Database, id: string): Promise<SessionRow | null> => {
@@ -186,6 +200,37 @@ export const sessionsRoute = new Hono<AuthEnv>()
       membership: toMembershipDto(membershipRow, user.displayName),
     };
     return c.json(body, 201);
+  })
+
+  // 参加中セッション一覧。
+  .get("/", async (c) => {
+    const user = c.get("user");
+    const db = drizzle(c.env.DB);
+    const now = Date.now();
+
+    const rows = await db
+      .select({ session: sessions, membership: memberships })
+      .from(memberships)
+      .innerJoin(sessions, eq(memberships.sessionId, sessions.id))
+      .where(eq(memberships.userId, user.id))
+      .orderBy(desc(sessions.createdAt));
+
+    const body: SessionListResponse = {
+      serverNow: now,
+      sessions: rows.map((r) => {
+        // 一覧でも期限切れを active と見せない。
+        const status = resolveSessionStatus(r.session, now);
+        return {
+          session: toSessionDto({
+            ...r.session,
+            status,
+            nextDisclosureAt: status === "ended" ? null : r.session.nextDisclosureAt,
+          }),
+          membership: toMembershipDto(r.membership, user.displayName),
+        };
+      }),
+    };
+    return c.json(body);
   })
 
   // 招待コードで参加する。終了済みセッションには参加できない。
@@ -415,6 +460,80 @@ export const sessionsRoute = new Hono<AuthEnv>()
       sessionStatus: session.status,
       locations: disclosed,
       self,
+    };
+    return c.json(body);
+  })
+
+  // 移動履歴。開示済みスナップショットの系列のみ返し、開示前の点は SQL と buildDisclosedTrack で二重に除外する。
+  .get("/:id/history", async (c) => {
+    const user = c.get("user");
+    const db = drizzle(c.env.DB);
+    const now = Date.now();
+
+    const found = await findSessionById(db, c.req.param("id"));
+    if (!found) {
+      return jsonError(c, 404, "session_not_found", "セッションが見つかりません");
+    }
+    const selfMembership = await findMembership(db, found.id, user.id);
+    if (!selfMembership) {
+      return jsonError(c, 403, "not_a_member", "このセッションのメンバーではありません");
+    }
+    const session = await reconcileSessionStatus(db, found, now);
+
+    const disclosureRows = await db
+      .select()
+      .from(disclosures)
+      .where(eq(disclosures.sessionId, session.id))
+      .orderBy(asc(disclosures.disclosedAt));
+    const disclosedAts = disclosureRows.map((d) => d.disclosedAt);
+    const latestDisclosedAt = disclosedAts.at(-1) ?? null;
+
+    const tracks: HistoryResponse["tracks"] = [];
+    if (latestDisclosedAt !== null) {
+      const memberRows = await db
+        .select({ membership: memberships, displayName: users.displayName })
+        .from(memberships)
+        .innerJoin(users, eq(memberships.userId, users.id))
+        .where(eq(memberships.sessionId, session.id));
+
+      const pointRows = await db
+        .select()
+        .from(locationPoints)
+        .where(
+          and(
+            eq(locationPoints.sessionId, session.id),
+            lte(locationPoints.capturedAt, latestDisclosedAt),
+            lte(locationPoints.uploadedAt, latestDisclosedAt),
+          ),
+        )
+        .orderBy(asc(locationPoints.capturedAt));
+
+      const byMembership = new Map<string, LocationPointRow[]>();
+      for (const row of pointRows) {
+        const list = byMembership.get(row.membershipId);
+        if (list) {
+          list.push(row);
+        } else {
+          byMembership.set(row.membershipId, [row]);
+        }
+      }
+
+      for (const r of memberRows) {
+        // 共有オフのメンバーの履歴は本人以外に出さない。
+        if (!r.membership.sharingEnabled && r.membership.id !== selfMembership.id) {
+          continue;
+        }
+        const points = buildDisclosedTrack(disclosedAts, byMembership.get(r.membership.id) ?? []);
+        if (points.length > 0) {
+          tracks.push({ membershipId: r.membership.id, displayName: r.displayName, points });
+        }
+      }
+    }
+
+    const body: HistoryResponse = {
+      serverNow: now,
+      sessionStatus: session.status,
+      tracks,
     };
     return c.json(body);
   });
