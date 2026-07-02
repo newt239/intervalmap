@@ -1,6 +1,6 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { ActionButton } from "#/components/action-button";
 import { LoadingView } from "#/components/loading-view";
@@ -9,14 +9,10 @@ import { loadAuth } from "#/features/auth/auth-store";
 import { locationTracker } from "#/features/location";
 import { SessionMap } from "#/features/map/session-map";
 import { apiFetch } from "#/lib/api-client";
-import {
-  historyResponseSchema,
-  mapResponseSchema,
-  sessionDetailResponseSchema,
-} from "@intervalmap/shared";
+import { mapResponseSchema, sessionDetailResponseSchema } from "@intervalmap/shared";
 
 import type { StoredAuth } from "#/features/auth/auth-store";
-import type { HistoryResponse, MapResponse, SessionDetailResponse } from "@intervalmap/shared";
+import type { MapResponse, SessionDetailResponse } from "@intervalmap/shared";
 
 // 残り時間の表示フォーマット。負値は 0 に丸める。
 const formatCountdown = (ms: number): string => {
@@ -36,8 +32,6 @@ export default function SessionScreen() {
   const [auth, setAuth] = useState<StoredAuth | null>(null);
   const [detail, setDetail] = useState<SessionDetailResponse | null>(null);
   const [mapData, setMapData] = useState<MapResponse | null>(null);
-  const [history, setHistory] = useState<HistoryResponse | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
   // serverNow と端末時計の差。カウントダウンを端末時計に依存させないための補正値。
@@ -71,11 +65,17 @@ export default function SessionScreen() {
     setMapData(mapRes);
   }, [auth, id]);
 
-  useEffect(() => {
-    refresh().catch((error) => {
-      Alert.alert("読み込みに失敗しました", error instanceof Error ? error.message : String(error));
-    });
-  }, [refresh]);
+  // 設定・招待ページから戻ったときも最新の状態を映す。
+  useFocusEffect(
+    useCallback(() => {
+      refresh().catch((error) => {
+        Alert.alert(
+          "読み込みに失敗しました",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
+    }, [refresh]),
+  );
 
   // next_disclosure_at に合わせて1回だけ再取得する。無駄なポーリングを避ける。
   useEffect(() => {
@@ -93,17 +93,6 @@ export default function SessionScreen() {
     }, delay);
     return () => clearTimeout(timer);
   }, [mapData, refresh]);
-
-  // 履歴表示中は開示の更新に合わせて取り直す。
-  const disclosedAt = mapData?.disclosedAt ?? null;
-  useEffect(() => {
-    if (!showHistory || !auth || !id || disclosedAt === null) {
-      return;
-    }
-    apiFetch(historyResponseSchema, `/sessions/${id}/history`, { token: auth.token })
-      .then(setHistory)
-      .catch(() => {});
-  }, [showHistory, auth, id, disclosedAt]);
 
   // カウントダウン表示用の1秒ティック。
   useEffect(() => {
@@ -150,22 +139,14 @@ export default function SessionScreen() {
     locationTracker.stop().then(() => setTracking(false));
   };
 
-  const shareInvite = () => {
-    if (!detail) {
-      return;
-    }
-    Share.share({
-      message: `「${detail.session.title}」に参加してください。招待コード: ${detail.session.inviteCode}`,
-    }).catch(() => {});
-  };
-
   if (!detail || !mapData) {
     return <LoadingView />;
   }
 
   const serverNow = nowTick + clockOffsetRef.current;
   const ended = mapData.sessionStatus === "ended";
-  const selfMembershipId = mapData.self?.membershipId ?? null;
+  const selfMembership = detail.members.find((m) => m.userId === auth?.userId) ?? null;
+  const selfMembershipId = selfMembership?.id ?? null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -173,15 +154,20 @@ export default function SessionScreen() {
         options={{
           title: detail.session.title,
           headerRight: () => (
-            <Pressable onPress={shareInvite} hitSlop={8}>
-              <Text style={[styles.headerAction, { color: theme.tint }]}>共有</Text>
-            </Pressable>
+            <View style={styles.headerActions}>
+              <Pressable onPress={() => router.push(`/session/${id}/invite`)} hitSlop={8}>
+                <Text style={[styles.headerAction, { color: theme.tint }]}>招待</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push(`/session/${id}/settings`)} hitSlop={8}>
+                <Text style={[styles.headerAction, { color: theme.tint }]}>設定</Text>
+              </Pressable>
+            </View>
           ),
         }}
       />
       <View style={styles.header}>
         <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
-          メンバー {detail.members.length}人 ・ 招待コード {detail.session.inviteCode}
+          メンバー {detail.members.length}人
         </Text>
         {ended ? (
           <Text style={[styles.endedBanner, { color: theme.destructive }]}>
@@ -206,20 +192,41 @@ export default function SessionScreen() {
         locations={mapData.locations}
         self={mapData.self}
         selfMembershipId={selfMembershipId}
-        tracks={showHistory ? (history?.tracks ?? []) : []}
+        tracks={[]}
       />
 
+      <ScrollView style={styles.memberList} contentContainerStyle={styles.memberListContent}>
+        <Text style={[styles.sectionTitle, { color: theme.secondaryLabel }]}>メンバー</Text>
+        {detail.members.map((member) => (
+          <Pressable
+            key={member.id}
+            style={styles.memberRow}
+            onPress={() => router.push(`/session/${id}/member/${member.id}`)}
+          >
+            <View style={styles.memberText}>
+              <Text style={[styles.memberName, { color: theme.label }]}>
+                {member.displayName}
+                {member.id === selfMembershipId ? "（自分）" : ""}
+              </Text>
+              <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
+                {`${member.role === "owner" ? "主催" : "参加" 
+                  } ・ ${ 
+                  member.sharingEnabled ? "位置共有オン" : "位置共有オフ"}`}
+              </Text>
+            </View>
+            <Text style={[styles.chevron, { color: theme.secondaryLabel }]}>›</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
       <View style={styles.footer}>
-        <View style={styles.historyRow}>
-          <Text style={[styles.historyLabel, { color: theme.label }]}>移動履歴を表示</Text>
-          <Switch value={showHistory} onValueChange={setShowHistory} />
-        </View>
-        {showHistory && (history?.tracks.length ?? 0) === 0 ? (
-          <Text style={[styles.historyEmpty, { color: theme.secondaryLabel }]}>
-            開示済みの履歴はまだありません
+        {!ended && selfMembership?.sharingEnabled === false ? (
+          <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
+            位置共有はオフ設定です。ヘッダーの設定から変更できます。
           </Text>
         ) : null}
         {!ended &&
+          selfMembership?.sharingEnabled === true &&
           (tracking ? (
             <ActionButton title="共有を停止" onPress={stopSharing} variant="destructive" />
           ) : (
@@ -231,6 +238,9 @@ export default function SessionScreen() {
 }
 
 const styles = StyleSheet.create({
+  chevron: {
+    fontSize: 22,
+  },
   container: {
     flex: 1,
   },
@@ -254,19 +264,36 @@ const styles = StyleSheet.create({
   headerAction: {
     fontSize: 17,
   },
-  historyEmpty: {
-    fontSize: 12,
-    textAlign: "center",
+  headerActions: {
+    flexDirection: "row",
+    gap: 16,
   },
-  historyLabel: {
+  memberList: {
+    flexGrow: 0,
+    maxHeight: 220,
+  },
+  memberListContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  memberName: {
     fontSize: 16,
   },
-  historyRow: {
+  memberRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  memberText: {
+    gap: 2,
   },
   meta: {
     fontSize: 13,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
 });

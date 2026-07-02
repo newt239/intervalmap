@@ -56,7 +56,12 @@ export default function JoinScreen() {
 
   return (
     <FormScreen insetTop={false}>
-      <FormSection footer={registered ? "登録済みの表示名を使用します" : undefined}>
+      <FormSection
+        footer={
+          `${registered ? "登録済みの表示名を使用します。" : "" 
+          }招待コードの種類によって位置共有のオン/オフが決まります。参加後にセッションの設定からいつでも変更できます。`
+        }
+      >
         <FormLabelValue label="招待コード" value={code ?? "不明"} tone="muted" />
         <FormTextField
           label="あなたの表示名"

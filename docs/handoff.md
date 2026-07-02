@@ -4,7 +4,7 @@
 
 ## 1. プロダクト概要
 
-主催者がセッションを作成し「開示インターバル」と「期限」を設定する。参加者は招待リンク/QRで参加し、位置はバックグラウンドで記録され、**設定インターバルごとにのみ**グループへ公開される。期限が来ると追跡は完全に停止する。用途は鬼ごっこ、家族の見守り、イベント運営、マラソン・登山の応援など。
+主催者がセッションを作成し「開示インターバル」と「期限」を設定する。参加者は招待リンク/QRで参加し、位置はバックグラウンドで記録され、**設定インターバルごとにのみ**グループへ公開される。期限が来ると追跡は完全に停止する。用途は家族の見守り、イベント運営、マラソン・登山の応援など。
 
 設計思想（全実装に通底させる）:
 
@@ -57,9 +57,10 @@ Drizzle スキーマは apps/api 配下（実体は `apps/api/src/db/schema.ts`�
 ```
 users            id, display_name, auth_token, created_at
 push_tokens      id, user_id, expo_push_token, platform, updated_at
-sessions         id, owner_id, title, invite_code, interval_sec,
+sessions         id, owner_id, title, invite_code, viewer_invite_code, interval_sec,
                  starts_at, expires_at, precision, status, next_disclosure_at, created_at
-memberships      id, session_id, user_id, role, sharing_enabled, last_uploaded_at, joined_at
+memberships      id, session_id, user_id, role, sharing_enabled, viewing_enabled,
+                 last_uploaded_at, joined_at
 location_points  id, session_id, membership_id, captured_at, lat, lng,
                  accuracy_m, battery, uploaded_at
 disclosures      id, session_id, disclosed_at
@@ -70,6 +71,8 @@ alerts           id, session_id, membership_id, type, fired_at
 
 - Cron（毎分）が `status='active' AND next_disclosure_at <= now` のセッションに disclosure を作成し、`next_disclosure_at` をインターバル分進め、参加者へプッシュをファンアウトする。
 - 参加者向け API は「最新 disclosure 時点の各メンバー位置」のみ返す。disclosure 以降の点は絶対に返さない。**自分自身の現在位置は常に見えてよい**。
+- 参加者は自分の共有（sharing_enabled）と閲覧（viewing_enabled）を制御できる。共有オフ中のアップロードはサーバー側で拒否し、閲覧オフの本人には他メンバーの位置・履歴を返さない。
+- 招待コードは共有参加用と閲覧のみ参加用の2種で、どちらで参加したかが membership の初期共有状態を決める。
 - `expires_at <= now` で `status='ended'` に更新。ended 以降のアップロードは**サーバー側で拒否**する。
 - 無応答アラート: `last_uploaded_at` が `interval_sec × 3` を超えたメンバーがいたら主催者へプッシュ。連続発火はクールダウンさせる。
 
@@ -81,8 +84,9 @@ alerts           id, session_id, membership_id, type, fired_at
 POST   /users                  匿名ユーザー登録（トークン発行）
 POST   /sessions               セッション作成（title, interval_sec, duration_sec, precision）
 GET    /sessions               参加中セッション一覧（自分の membership 付き）
-POST   /sessions/join          invite_code で参加
+POST   /sessions/join          招待コードで参加。共有用 invite_code なら共有オン、閲覧用 viewer_invite_code なら共有オフで始まる
 GET    /sessions/:id           セッション詳細 + メンバー一覧
+PATCH  /sessions/:id/me        自分の共有・閲覧設定の更新（sharing_enabled, viewing_enabled）
 POST   /sessions/:id/end       主催者による即時終了
 POST   /sessions/:id/locations 位置のバッチアップロード
 GET    /sessions/:id/map       最新開示時点の全メンバー位置 + next_disclosure_at
@@ -118,7 +122,6 @@ PUT    /me/push-token          Expo Push token 登録（未実装）
 2. **認証**: 匿名デバイス認証で開始。機種変更時の引き継ぎ方式（better-auth かリンクコード方式か）は提案がほしい。
 3. **D1 のレイテンシ**: 位置書き込みが高頻度なため、実測して問題があれば KV/Queues バッファリングを提案。
 4. **expo-maps の成熟度**: 要件（複数マーカー、カスタムマーカー、追従）に不足があれば react-native-maps への切り替えを提案してよい。
-5. **鬼ごっこモード**: 役職による可視性の非対称は将来対応。MVP は全員対等で、memberships の role 列に余地だけ残す。
 
 ## 10. 作業指示
 

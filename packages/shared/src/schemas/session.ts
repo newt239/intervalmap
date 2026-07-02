@@ -36,7 +36,9 @@ export const sessionSchema = z.object({
   id: z.string(),
   ownerId: z.string(),
   title: z.string(),
+  // inviteCode は位置を共有して参加する用、viewerInviteCode は閲覧のみで参加する用。
   inviteCode: z.string(),
+  viewerInviteCode: z.string(),
   intervalSec: intervalSecSchema,
   startsAt: epochMsSchema,
   expiresAt: epochMsSchema,

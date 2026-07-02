@@ -6,7 +6,7 @@ import { createSessionInputSchema, uploadLocationsInputSchema } from "../src/sch
 // スキーマ配線の疎通確認。開示ロジックのテストは apps/api 側にある。
 describe("createSessionInputSchema", () => {
   const base = {
-    title: "鬼ごっこ",
+    title: "ハイキング",
     intervalSec: 300,
     durationSec: 3600,
     precision: "exact" as const,

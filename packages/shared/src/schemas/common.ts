@@ -11,7 +11,7 @@ export type Precision = z.infer<typeof precisionSchema>;
 export const sessionStatusSchema = z.enum(["scheduled", "active", "ended"]);
 export type SessionStatus = z.infer<typeof sessionStatusSchema>;
 
-// メンバーの役割。鬼ごっこモードの拡張余地を残す。
+// メンバーの役割。owner はセッション主催者。
 export const roleSchema = z.enum(["owner", "member"]);
 export type Role = z.infer<typeof roleSchema>;
 

@@ -1,0 +1,1 @@
+ALTER TABLE `memberships` ADD `viewing_enabled` integer DEFAULT true NOT NULL;

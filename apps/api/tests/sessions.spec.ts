@@ -11,6 +11,7 @@ import type {
   ErrorResponse,
   HistoryResponse,
   MapResponse,
+  MembershipResponse,
   SessionDetailResponse,
   SessionListResponse,
   SessionWithMembershipResponse,
@@ -70,6 +71,22 @@ const fetchMap = async (token: string, sessionId: string): Promise<MapResponse> 
   return res.json();
 };
 
+const fetchHistory = async (token: string, sessionId: string): Promise<HistoryResponse> => {
+  const res = await authedFetch(token, `/sessions/${sessionId}/history`);
+  expect(res.status).toBe(200);
+  return res.json();
+};
+
+// 開示時刻を過去に倒して開示を1回発生させる。
+const forceDisclosure = async (sessionId: string) => {
+  const db = drizzle(env.DB);
+  await db
+    .update(sessions)
+    .set({ nextDisclosureAt: Date.now() - 1000 })
+    .where(eq(sessions.id, sessionId));
+  await runScheduledTick(db, Date.now());
+};
+
 describe("認証", () => {
   it("トークンなしのアクセスを 401 で拒否する", async () => {
     const res = await SELF.fetch("https://example.com/sessions", {
@@ -89,6 +106,8 @@ describe("セッション作成と参加", () => {
     const created = await createSession(owner.token);
     expect(created.session.status).toBe("active");
     expect(created.session.inviteCode).toHaveLength(10);
+    expect(created.session.viewerInviteCode).toHaveLength(10);
+    expect(created.session.viewerInviteCode).not.toBe(created.session.inviteCode);
     // 初回開示は開始から1インターバル後。
     expect(created.session.nextDisclosureAt).toBe(created.session.startsAt + 60 * 1000);
     expect(created.membership.role).toBe("owner");
@@ -291,22 +310,6 @@ describe("参加中セッション一覧", () => {
 });
 
 describe("移動履歴の不変条件", () => {
-  const fetchHistory = async (token: string, sessionId: string): Promise<HistoryResponse> => {
-    const res = await authedFetch(token, `/sessions/${sessionId}/history`);
-    expect(res.status).toBe(200);
-    return res.json();
-  };
-
-  // 開示時刻を過去に倒して開示を1回発生させる。
-  const forceDisclosure = async (sessionId: string) => {
-    const db = drizzle(env.DB);
-    await db
-      .update(sessions)
-      .set({ nextDisclosureAt: Date.now() - 1000 })
-      .where(eq(sessions.id, sessionId));
-    await runScheduledTick(db, Date.now());
-  };
-
   it("開示前は履歴を返さず、開示後は開示時点以前の点のみ返す", async () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
@@ -344,6 +347,110 @@ describe("移動履歴の不変条件", () => {
     const created = await createSession(owner.token);
 
     const res = await authedFetch(outsider.token, `/sessions/${created.session.id}/history`);
+    expect(res.status).toBe(403);
+  });
+});
+
+describe("共有・閲覧設定", () => {
+  const patchMe = async (
+    token: string,
+    sessionId: string,
+    body: { sharingEnabled?: boolean; viewingEnabled?: boolean },
+  ): Promise<MembershipResponse> => {
+    const res = await authedFetch(token, `/sessions/${sessionId}/me`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    expect(res.status).toBe(200);
+    return res.json();
+  };
+
+  it("共有用コードで参加すると共有オン、閲覧用コードで参加すると共有オフで始まる", async () => {
+    const owner = await registerUser("主催者");
+    const sharer = await registerUser("共有参加者");
+    const viewer = await registerUser("閲覧参加者");
+    const created = await createSession(owner.token);
+
+    const sharerRes = await joinSession(sharer.token, created.session.inviteCode);
+    expect(sharerRes.status).toBe(201);
+    const sharerJoined: SessionWithMembershipResponse = await sharerRes.json();
+    expect(sharerJoined.membership.sharingEnabled).toBe(true);
+    expect(sharerJoined.membership.viewingEnabled).toBe(true);
+
+    const viewerRes = await joinSession(viewer.token, created.session.viewerInviteCode);
+    expect(viewerRes.status).toBe(201);
+    const viewerJoined: SessionWithMembershipResponse = await viewerRes.json();
+    expect(viewerJoined.membership.sharingEnabled).toBe(false);
+    expect(viewerJoined.membership.viewingEnabled).toBe(true);
+  });
+
+  it("共有オフ中のアップロードをサーバー側で拒否する", async () => {
+    const owner = await registerUser("主催者");
+    const member = await registerUser("参加者");
+    const created = await createSession(owner.token);
+    await joinSession(member.token, created.session.viewerInviteCode);
+
+    const uploadRes = await uploadPoint(member.token, created.session.id, 35, 139);
+    expect(uploadRes.status).toBe(409);
+    const body: ErrorResponse = await uploadRes.json();
+    expect(body.error.code).toBe("sharing_disabled");
+  });
+
+  it("共有をオフにすると開示済みでも他メンバーの地図・履歴から消える", async () => {
+    const owner = await registerUser("主催者");
+    const member = await registerUser("参加者");
+    const created = await createSession(owner.token);
+    await joinSession(member.token, created.session.inviteCode);
+
+    await uploadPoint(member.token, created.session.id, 35, 139);
+    await forceDisclosure(created.session.id);
+
+    const before = await fetchMap(owner.token, created.session.id);
+    expect(before.locations).toHaveLength(1);
+
+    const patched = await patchMe(member.token, created.session.id, { sharingEnabled: false });
+    expect(patched.membership.sharingEnabled).toBe(false);
+
+    const map = await fetchMap(owner.token, created.session.id);
+    expect(map.locations).toHaveLength(0);
+    const history = await fetchHistory(owner.token, created.session.id);
+    expect(history.tracks).toHaveLength(0);
+  });
+
+  it("閲覧オフの本人には他人の位置と履歴を返さず、自分自身は見える", async () => {
+    const owner = await registerUser("主催者");
+    const member = await registerUser("参加者");
+    const created = await createSession(owner.token);
+    await joinSession(member.token, created.session.inviteCode);
+
+    await uploadPoint(owner.token, created.session.id, 34, 138);
+    await uploadPoint(member.token, created.session.id, 35, 139);
+    await forceDisclosure(created.session.id);
+
+    await patchMe(member.token, created.session.id, { viewingEnabled: false });
+
+    const map = await fetchMap(member.token, created.session.id);
+    expect(map.locations).toHaveLength(0);
+    expect(map.self?.lat).toBe(35);
+
+    const history = await fetchHistory(member.token, created.session.id);
+    expect(history.tracks).toHaveLength(1);
+    expect(history.tracks[0]?.points[0]?.lat).toBe(35);
+
+    // 主催者側の見え方には影響しない。
+    const ownerMap = await fetchMap(owner.token, created.session.id);
+    expect(ownerMap.locations).toHaveLength(2);
+  });
+
+  it("メンバー外の設定変更を 403 で拒否する", async () => {
+    const owner = await registerUser("主催者");
+    const outsider = await registerUser("部外者");
+    const created = await createSession(owner.token);
+
+    const res = await authedFetch(outsider.token, `/sessions/${created.session.id}/me`, {
+      method: "PATCH",
+      body: JSON.stringify({ sharingEnabled: false }),
+    });
     expect(res.status).toBe(403);
   });
 });

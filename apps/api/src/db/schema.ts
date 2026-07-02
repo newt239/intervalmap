@@ -27,8 +27,10 @@ export const sessions = sqliteTable("sessions", {
     .notNull()
     .references(() => users.id),
   title: text("title").notNull(),
-  // 短命かつ推測不能な招待コード。
+  // 短命かつ推測不能な招待コード。invite_code は共有参加用、viewer_invite_code は閲覧のみ参加用。
   inviteCode: text("invite_code").notNull().unique(),
+  // default は既存行のマイグレーション用で、insert 時は必ず生成した値を入れる。
+  viewerInviteCode: text("viewer_invite_code").notNull().unique().default(""),
   intervalSec: integer("interval_sec").notNull(),
   startsAt: integer("starts_at").notNull(),
   expiresAt: integer("expires_at").notNull(),
@@ -52,11 +54,13 @@ export const memberships = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
-    // 鬼ごっこモードの役割拡張余地を残す。
+    // owner はセッション主催者。
     role: text("role", { enum: ["owner", "member"] })
       .notNull()
       .default("member"),
+    // sharing は自分の位置の共有、viewing は他メンバーの位置の閲覧。どちらも本人が制御する。
     sharingEnabled: integer("sharing_enabled", { mode: "boolean" }).notNull().default(true),
+    viewingEnabled: integer("viewing_enabled", { mode: "boolean" }).notNull().default(true),
     lastUploadedAt: integer("last_uploaded_at"),
     joinedAt: integer("joined_at").notNull(),
   },

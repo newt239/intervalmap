@@ -101,7 +101,7 @@ export default function HomeScreen() {
       <FormSection title="セッションを作成" footer="期限が来ると追跡は自動的に停止します">
         <FormTextField
           label="セッション名"
-          placeholder="例: 鬼ごっこ"
+          placeholder="例: 家族でハイキング"
           value={title}
           onChangeText={setTitle}
         />

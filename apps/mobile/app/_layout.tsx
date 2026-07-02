@@ -8,7 +8,10 @@ export default function RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="session/[id]" options={{ title: "セッション" }} />
+      <Stack.Screen name="session/[id]/index" options={{ title: "セッション" }} />
+      <Stack.Screen name="session/[id]/invite" options={{ title: "メンバーを招待" }} />
+      <Stack.Screen name="session/[id]/settings" options={{ title: "共有設定" }} />
+      <Stack.Screen name="session/[id]/member/[membershipId]" options={{ title: "メンバー" }} />
       <Stack.Screen name="join/[code]" options={{ title: "セッションに参加" }} />
       <Stack.Screen name="settings/display-name" options={{ title: "表示名" }} />
       <Stack.Screen name="settings/location-permission" options={{ title: "位置情報の権限" }} />

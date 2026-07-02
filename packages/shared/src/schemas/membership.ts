@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { epochMsSchema, roleSchema } from "./common.ts";
 
-// メンバーシップのスキーマ。
+// メンバーシップのスキーマ。sharingEnabled は自分の位置の共有、viewingEnabled は他メンバーの位置の閲覧。
 export const membershipSchema = z.object({
   id: z.string(),
   sessionId: z.string(),
@@ -10,6 +10,7 @@ export const membershipSchema = z.object({
   displayName: z.string(),
   role: roleSchema,
   sharingEnabled: z.boolean(),
+  viewingEnabled: z.boolean(),
   lastUploadedAt: epochMsSchema.nullable(),
   joinedAt: epochMsSchema,
 });

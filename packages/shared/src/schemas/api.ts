@@ -21,10 +21,23 @@ export const userResponseSchema = z.object({
 });
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
+// 共有用・閲覧用どちらの招待コードかで参加後の初期共有状態が決まる。
 export const joinSessionInputSchema = z.object({
   inviteCode: z.string().min(1),
 });
 export type JoinSessionInput = z.infer<typeof joinSessionInputSchema>;
+
+// 自分の共有・閲覧設定の更新。省略したフィールドは変更しない。
+export const updateMembershipInputSchema = z.object({
+  sharingEnabled: z.boolean().optional(),
+  viewingEnabled: z.boolean().optional(),
+});
+export type UpdateMembershipInput = z.infer<typeof updateMembershipInputSchema>;
+
+export const membershipResponseSchema = z.object({
+  membership: membershipSchema,
+});
+export type MembershipResponse = z.infer<typeof membershipResponseSchema>;
 
 // セッション作成・参加のレスポンス。自分の membership を伴う。
 export const sessionWithMembershipResponseSchema = z.object({
