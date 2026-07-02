@@ -41,6 +41,8 @@ export const sessions = sqliteTable("sessions", {
     .notNull()
     .default("scheduled"),
   nextDisclosureAt: integer("next_disclosure_at"),
+  // 実際に終了した時刻。履歴の自動削除はこの時刻を基準に保持期間を数える。
+  endedAt: integer("ended_at"),
   createdAt: integer("created_at").notNull(),
 });
 

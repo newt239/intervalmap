@@ -14,6 +14,7 @@ export default function SettingsScreen() {
           label="位置情報の権限"
           onPress={() => router.push("/settings/location-permission")}
         />
+        <FormLink label="通知" onPress={() => router.push("/settings/notifications")} />
       </FormSection>
     </FormScreen>
   );

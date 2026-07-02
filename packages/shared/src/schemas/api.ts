@@ -95,6 +95,11 @@ export const registerPushTokenInputSchema = z.object({
 });
 export type RegisterPushTokenInput = z.infer<typeof registerPushTokenInputSchema>;
 
+export const registerPushTokenResponseSchema = z.object({
+  ok: z.literal(true),
+});
+export type RegisterPushTokenResponse = z.infer<typeof registerPushTokenResponseSchema>;
+
 export const errorResponseSchema = z.object({
   error: z.object({
     code: z.string(),

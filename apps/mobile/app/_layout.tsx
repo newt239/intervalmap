@@ -5,6 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "#/lib/query-client";
 // バックグラウンド位置タスクをアプリ起動時に必ず登録する。
 import "#/lib/location/task";
+// 通知ハンドラと push token 再登録をアプリ起動時に必ず仕込む。
+import "#/lib/notifications";
 
 export default function RootLayout() {
   return (
@@ -18,6 +20,7 @@ export default function RootLayout() {
         <Stack.Screen name="join/[code]" options={{ title: "セッションに参加" }} />
         <Stack.Screen name="settings/display-name" options={{ title: "表示名" }} />
         <Stack.Screen name="settings/location-permission" options={{ title: "位置情報の権限" }} />
+        <Stack.Screen name="settings/notifications" options={{ title: "通知" }} />
       </Stack>
     </QueryClientProvider>
   );

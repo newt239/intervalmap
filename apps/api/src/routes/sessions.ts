@@ -12,6 +12,7 @@ import {
 
 import { disclosures, locationPoints, memberships, sessions, users } from "../db/schema.ts";
 import { buildDisclosedTrack } from "../domain/history.ts";
+import { notifySessionEnd } from "../domain/tick.ts";
 import { jsonError } from "../lib/http-error.ts";
 import { requireAuth } from "../middleware/auth.ts";
 
@@ -96,9 +97,9 @@ const reconcileSessionStatus = async (
   if (resolved === "ended") {
     await db
       .update(sessions)
-      .set({ status: "ended", nextDisclosureAt: null })
+      .set({ status: "ended", nextDisclosureAt: null, endedAt: now })
       .where(eq(sessions.id, session.id));
-    return { ...session, status: "ended", nextDisclosureAt: null };
+    return { ...session, status: "ended", nextDisclosureAt: null, endedAt: now };
   }
   await db.update(sessions).set({ status: resolved }).where(eq(sessions.id, session.id));
   return { ...session, status: resolved };
@@ -176,6 +177,7 @@ export const sessionsRoute = new Hono<AuthEnv>()
         status: "active",
         // 初回開示は開始から1インターバル後。
         nextDisclosureAt: startsAt + parsed.data.intervalSec * 1000,
+        endedAt: null,
         createdAt: now,
       };
       try {
@@ -356,6 +358,7 @@ export const sessionsRoute = new Hono<AuthEnv>()
   .post("/:id/end", async (c) => {
     const user = c.get("user");
     const db = drizzle(c.env.DB);
+    const now = Date.now();
 
     const found = await findSessionById(db, c.req.param("id"));
     if (!found) {
@@ -364,16 +367,15 @@ export const sessionsRoute = new Hono<AuthEnv>()
     if (found.ownerId !== user.id) {
       return jsonError(c, 403, "not_owner", "主催者のみ終了できます");
     }
+    const ended: SessionRow = { ...found, status: "ended", nextDisclosureAt: null, endedAt: now };
     await db
       .update(sessions)
-      .set({ status: "ended", nextDisclosureAt: null })
+      .set({ status: "ended", nextDisclosureAt: null, endedAt: now })
       .where(eq(sessions.id, found.id));
+    // 終了通知は即時に送る。alerts が台帳になるため Cron と重複しない。
+    await notifySessionEnd(db, ended, now);
 
-    const body: SessionDetailResponse["session"] = toSessionDto({
-      ...found,
-      status: "ended",
-      nextDisclosureAt: null,
-    });
+    const body: SessionDetailResponse["session"] = toSessionDto(ended);
     return c.json({ session: body });
   })
 

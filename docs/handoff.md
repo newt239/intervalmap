@@ -91,7 +91,7 @@ POST   /sessions/:id/end       主催者による即時終了
 POST   /sessions/:id/locations 位置のバッチアップロード
 GET    /sessions/:id/map       最新開示時点の全メンバー位置 + next_disclosure_at
 GET    /sessions/:id/history   移動履歴（開示済みスナップショットの系列のみ。リプレイ用）
-PUT    /me/push-token          Expo Push token 登録（未実装）
+PUT    /me/push-token          Expo Push token 登録
 ```
 
 `GET /sessions/:id/map` が `next_disclosure_at` と `serverNow` を返すため、クライアントは次回開示時刻+αに1回だけ再フェッチすればよい。

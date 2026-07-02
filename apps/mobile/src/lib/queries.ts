@@ -46,7 +46,7 @@ export const useSessionMap = (sessionId: string, token: string | undefined) =>
     enabled: token !== undefined,
     // 開示予定があればその2秒後に1回だけ、無ければ30秒間隔で再取得する。
     refetchInterval: (query) => {
-      const {data} = query.state;
+      const { data } = query.state;
       if (!data || data.sessionStatus === "ended") {
         return false;
       }
