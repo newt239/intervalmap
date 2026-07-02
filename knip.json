@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/knip/schema.json",
+  "ignoreUnresolved": ["^#/components/"],
   "workspaces": {
     "apps/api": {
       "entry": ["src/**/*.{spec,test}.ts", "tests/**/*.ts"],
@@ -8,8 +9,9 @@
       "ignoreDependencies": ["cloudflare"]
     },
     "apps/mobile": {
+      "entry": ["src/components/*/index.{ios,android}.{ts,tsx}"],
       "ignore": ["babel.config.js"],
-      "ignoreDependencies": ["expo-updates", "expo-system-ui", "@expo/ui"]
+      "ignoreDependencies": ["expo-updates", "expo-system-ui"]
     }
   }
 }

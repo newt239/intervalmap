@@ -1,7 +1,10 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, Share, StyleSheet, Switch, Text, View } from "react-native";
 
+import { ActionButton } from "#/components/action-button";
+import { LoadingView } from "#/components/loading-view";
+import { useTheme } from "#/components/theme";
 import { loadAuth } from "#/features/auth/auth-store";
 import { locationTracker } from "#/features/location";
 import { SessionMap } from "#/features/map/session-map";
@@ -29,6 +32,7 @@ const formatCountdown = (ms: number): string => {
 export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const theme = useTheme();
   const [auth, setAuth] = useState<StoredAuth | null>(null);
   const [detail, setDetail] = useState<SessionDetailResponse | null>(null);
   const [mapData, setMapData] = useState<MapResponse | null>(null);
@@ -156,11 +160,7 @@ export default function SessionScreen() {
   };
 
   if (!detail || !mapData) {
-    return (
-      <View style={styles.loading}>
-        <Text>読み込み中…</Text>
-      </View>
-    );
+    return <LoadingView />;
   }
 
   const serverNow = nowTick + clockOffsetRef.current;
@@ -168,25 +168,34 @@ export default function SessionScreen() {
   const selfMembershipId = mapData.self?.membershipId ?? null;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Stack.Screen
+        options={{
+          title: detail.session.title,
+          headerRight: () => (
+            <Pressable onPress={shareInvite} hitSlop={8}>
+              <Text style={[styles.headerAction, { color: theme.tint }]}>共有</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <View style={styles.header}>
-        <Text style={styles.title}>{detail.session.title}</Text>
-        <Text style={styles.meta}>
+        <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
           メンバー {detail.members.length}人 ・ 招待コード {detail.session.inviteCode}
         </Text>
         {ended ? (
-          <Text style={styles.endedBanner}>
+          <Text style={[styles.endedBanner, { color: theme.destructive }]}>
             このセッションは終了しました。追跡は停止しています。
           </Text>
         ) : (
           <View>
-            <Text style={styles.countdown}>
+            <Text style={[styles.countdown, { color: theme.label }]}>
               次回開示まで{" "}
               {mapData.nextDisclosureAt !== null
                 ? formatCountdown(mapData.nextDisclosureAt - serverNow)
                 : "—"}
             </Text>
-            <Text style={styles.meta}>
+            <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
               終了まで {formatCountdown(detail.session.expiresAt - serverNow)}
             </Text>
           </View>
@@ -201,41 +210,27 @@ export default function SessionScreen() {
       />
 
       <View style={styles.footer}>
-        <Pressable
-          style={styles.historyButton}
-          onPress={() => setShowHistory((visible) => !visible)}
-        >
-          <Text style={styles.historyButtonText}>
-            {showHistory ? "移動履歴を隠す" : "移動履歴を表示"}
-          </Text>
-        </Pressable>
+        <View style={styles.historyRow}>
+          <Text style={[styles.historyLabel, { color: theme.label }]}>移動履歴を表示</Text>
+          <Switch value={showHistory} onValueChange={setShowHistory} />
+        </View>
         {showHistory && (history?.tracks.length ?? 0) === 0 ? (
-          <Text style={styles.historyEmpty}>開示済みの履歴はまだありません</Text>
+          <Text style={[styles.historyEmpty, { color: theme.secondaryLabel }]}>
+            開示済みの履歴はまだありません
+          </Text>
         ) : null}
         {!ended &&
           (tracking ? (
-            <Pressable style={styles.stopButton} onPress={stopSharing}>
-              <Text style={styles.buttonText}>共有を停止</Text>
-            </Pressable>
+            <ActionButton title="共有を停止" onPress={stopSharing} variant="destructive" />
           ) : (
-            <Pressable style={styles.startButton} onPress={startSharing}>
-              <Text style={styles.buttonText}>位置共有を開始</Text>
-            </Pressable>
+            <ActionButton title="位置共有を開始" onPress={startSharing} variant="prominent" />
           ))}
-        <Pressable style={styles.inviteButton} onPress={shareInvite}>
-          <Text style={styles.inviteButtonText}>招待コードを共有</Text>
-        </Pressable>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   container: {
     flex: 1,
   },
@@ -245,7 +240,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   endedBanner: {
-    color: "#b91c1c",
     fontWeight: "bold",
   },
   footer: {
@@ -254,58 +248,25 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 4,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  historyButton: {
-    alignItems: "center",
-    borderColor: "#555",
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 12,
-  },
-  historyButtonText: {
-    color: "#555",
-    fontWeight: "bold",
+  headerAction: {
+    fontSize: 17,
   },
   historyEmpty: {
-    color: "#888",
     fontSize: 12,
     textAlign: "center",
   },
-  inviteButton: {
-    alignItems: "center",
-    borderColor: "#2563eb",
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 12,
+  historyLabel: {
+    fontSize: 16,
   },
-  inviteButtonText: {
-    color: "#2563eb",
-    fontWeight: "bold",
-  },
-  loading: {
+  historyRow: {
     alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   meta: {
-    color: "#555",
     fontSize: 13,
-  },
-  startButton: {
-    alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    padding: 14,
-  },
-  stopButton: {
-    alignItems: "center",
-    backgroundColor: "#b91c1c",
-    borderRadius: 8,
-    padding: 14,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
   },
 });

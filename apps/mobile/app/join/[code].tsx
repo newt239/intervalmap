@@ -1,7 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert } from "react-native";
 
+import { FormButton } from "#/components/form-button";
+import { FormLabelValue } from "#/components/form-label-value";
+import { FormScreen } from "#/components/form-screen";
+import { FormSection } from "#/components/form-section";
+import { FormTextField } from "#/components/form-text-field";
 import { ensureRegistered, loadAuth } from "#/features/auth/auth-store";
 import { apiFetch } from "#/lib/api-client";
 import { sessionWithMembershipResponseSchema } from "@intervalmap/shared";
@@ -50,58 +55,18 @@ export default function JoinScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>セッションに参加</Text>
-      <Text style={styles.code}>招待コード: {code}</Text>
-      <TextInput
-        style={styles.input}
-        value={displayName}
-        onChangeText={setDisplayName}
-        placeholder="あなたの表示名"
-        editable={!registered}
-      />
-      <Pressable style={styles.button} onPress={onJoin} disabled={busy}>
-        <Text style={styles.buttonText}>参加する</Text>
-      </Pressable>
-    </View>
+    <FormScreen insetTop={false}>
+      <FormSection footer={registered ? "登録済みの表示名を使用します" : undefined}>
+        <FormLabelValue label="招待コード" value={code ?? "不明"} tone="muted" />
+        <FormTextField
+          label="あなたの表示名"
+          placeholder="例: たろう"
+          value={displayName}
+          onChangeText={setDisplayName}
+          disabled={registered}
+        />
+      </FormSection>
+      <FormButton title="参加する" onPress={onJoin} disabled={busy} />
+    </FormScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    marginTop: 8,
-    padding: 14,
-    width: "100%",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  code: {
-    color: "#555",
-    fontSize: 14,
-  },
-  container: {
-    alignItems: "center",
-    flex: 1,
-    gap: 12,
-    justifyContent: "center",
-    padding: 24,
-  },
-  input: {
-    borderColor: "#ccc",
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 16,
-    padding: 12,
-    width: "100%",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-});

@@ -35,6 +35,10 @@ ls:
     .dir: kebab-case
     .ts: kebab-case
     .tsx: kebab-case
+    .ios.ts: kebab-case
+    .ios.tsx: kebab-case
+    .android.ts: kebab-case
+    .android.tsx: kebab-case
 
   apps/mobile/app:
     .dir: kebab-case | regex:^\(.+\)$ | regex:^\[.+\]$
