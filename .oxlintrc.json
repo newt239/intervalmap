@@ -1,0 +1,127 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    ".expo/",
+    ".wrangler/",
+    "apps/mobile/ios/",
+    "apps/mobile/android/",
+    "apps/api/drizzle/meta/"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "categories": {
+    "nursery": "warn",
+    "pedantic": "warn",
+    "perf": "warn",
+    "restriction": "warn",
+    "style": "warn",
+    "suspicious": "warn"
+  },
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "react",
+    "react-perf",
+    "oxc",
+    "import",
+    "jsx-a11y"
+  ],
+  "rules": {
+    "complexity": "off",
+    "func-style": ["error", "expression"],
+    "id-length": "off",
+    "max-lines": ["warn", { "max": 500, "skipBlankLines": true, "skipComments": true }],
+    "max-lines-per-function": "off",
+    "max-statements": "off",
+    "no-alert": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-inline-comments": "off",
+    "no-magic-numbers": "off",
+    "no-nested-ternary": "off",
+    "no-plusplus": "off",
+    "no-ternary": "off",
+    "no-undefined": "off",
+    "no-warning-comments": "off",
+    "capitalized-comments": "off",
+    "func-names": "off",
+    "require-await": "off",
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "import/consistent-type-specifier-style": "off",
+    "import/no-anonymous-default-export": "off",
+    "import/no-relative-parent-imports": "off",
+    "import/unambiguous": "off",
+    "import/exports-last": "off",
+    "import/group-exports": "off",
+    "import/max-dependencies": "off",
+    "import/no-default-export": "off",
+    "import/no-named-export": "off",
+    "import/no-namespace": "off",
+    "import/no-unassigned-import": "off",
+    "import/prefer-default-export": "off",
+    "oxc/no-async-await": "off",
+    "oxc/no-barrel-file": "off",
+    "oxc/no-optional-chaining": "off",
+    "oxc/no-rest-spread-properties": "off",
+    "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
+    "react/jsx-max-depth": "off",
+    "react/jsx-no-useless-fragment": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/react-in-jsx-scope": "off",
+    "react-perf/jsx-no-new-array-as-prop": "off",
+    "react-perf/jsx-no-new-function-as-prop": "off",
+    "react-perf/jsx-no-new-object-as-prop": "off",
+    "typescript/consistent-type-definitions": ["error", "type"],
+    "typescript/explicit-function-return-type": "off",
+    "typescript/explicit-member-accessibility": "off",
+    "typescript/explicit-module-boundary-types": "off",
+    "typescript/method-signature-style": "off",
+    "typescript/no-empty-interface": "off",
+    "typescript/no-non-null-assertion": "off",
+    "typescript/no-unsafe-call": "off",
+    "typescript/no-unsafe-member-access": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/prefer-readonly-parameter-types": "off",
+    "typescript/require-await": "off",
+    "typescript/strict-boolean-expressions": "off",
+    "unicorn/no-anonymous-default-export": "off",
+    "unicorn/no-nested-ternary": "off",
+    "unicorn/no-null": "off",
+    "unicorn/numeric-separators-style": "off",
+    "unicorn/prefer-global-this": "off"
+  },
+  "overrides": [
+    {
+      "files": ["apps/mobile/**/*.{ts,tsx}"],
+      "rules": {
+        "react/only-export-components": "off",
+        "react/forbid-component-props": "off",
+        "no-use-before-define": "off"
+      }
+    },
+    {
+      "files": ["**/*.config.{js,cjs}", "**/metro.config.js", "**/babel.config.js"],
+      "rules": {
+        "import/no-commonjs": "off",
+        "import/no-nodejs-modules": "off",
+        "import/unambiguous": "off",
+        "typescript/no-require-imports": "off",
+        "unicorn/prefer-module": "off"
+      }
+    },
+    {
+      "files": ["**/*.spec.ts", "**/*.test.ts", "**/vitest.config.ts"],
+      "rules": {
+        "typescript/no-deprecated": "off",
+        "typescript/no-unsafe-call": "off"
+      }
+    }
+  ]
+}

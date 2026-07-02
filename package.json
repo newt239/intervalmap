@@ -1,0 +1,31 @@
+{
+  "name": "intervalmap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "codecheck": "pnpm run typecheck && pnpm run lint && pnpm run format && pnpm run ls-lint && pnpm run knip",
+    "format": "oxfmt --check",
+    "format:fix": "oxfmt",
+    "knip": "knip",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix",
+    "ls-lint": "ls-lint",
+    "prepare": "lefthook install",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@ls-lint/ls-lint": "2.3.1",
+    "@types/node": "25.9.3",
+    "knip": "6.16.1",
+    "lefthook": "2.1.9",
+    "oxfmt": "0.54.0",
+    "oxlint": "1.69.0",
+    "oxlint-tsgolint": "0.23.0",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": "26.4.0"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

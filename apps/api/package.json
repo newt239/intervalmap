@@ -1,0 +1,28 @@
+{
+  "name": "@intervalmap/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply intervalmap-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply intervalmap-db --remote",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@intervalmap/shared": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.12.27"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.17.0",
+    "@cloudflare/workers-types": "4.20260701.1",
+    "drizzle-kit": "0.31.10",
+    "typescript": "6.0.3",
+    "vitest": "4.1.8",
+    "wrangler": "4.106.0"
+  }
+}

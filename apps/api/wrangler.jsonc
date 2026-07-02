@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "intervalmap-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+  // D1 バインディング。database_id は wrangler d1 create で発行して差し替える。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "intervalmap-db",
+      "database_id": "PLACEHOLDER_REPLACE_AFTER_D1_CREATE",
+      "migrations_dir": "drizzle",
+    },
+  ],
+  // 毎分の Cron。開示・期限終了・無応答アラートの本実装は M2。
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
+  // Queues は開示プッシュのファンアウト用に M2 で有効化する。
+}

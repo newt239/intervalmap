@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+.next/
+out/
+
+# expo
+.expo/
+.expo-shared/
+*.orig.*
+web-build/
+apps/mobile/ios/
+apps/mobile/android/
+
+# cloudflare / wrangler
+.wrangler/
+apps/api/.dev.vars
+
+# env / secrets
+*.local
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# misc
+.DS_Store
+*.tsbuildinfo
+coverage/

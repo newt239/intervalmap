@@ -1,0 +1,58 @@
+ls:
+  .dir: kebab-case | regex:^\..+$
+  .ts: kebab-case
+  .tsx: kebab-case
+  .mjs: kebab-case
+  .cjs: kebab-case
+  .js: kebab-case
+  .json: kebab-case
+  .jsonc: kebab-case
+  .yml: kebab-case
+  .yaml: kebab-case
+  .svg: kebab-case
+  .png: kebab-case
+  .d.ts: kebab-case
+  .config.ts: kebab-case
+  .config.mjs: kebab-case
+  .md: kebab-case | SCREAMING_SNAKE_CASE
+
+  packages/shared/src:
+    .dir: kebab-case
+    .ts: kebab-case
+    .spec.ts: kebab-case
+    .test.ts: kebab-case
+
+  apps/api/src:
+    .dir: kebab-case
+    .ts: kebab-case
+    .spec.ts: kebab-case
+    .test.ts: kebab-case
+
+  apps/api/drizzle:
+    .sql: snake_case
+
+  apps/mobile/src:
+    .dir: kebab-case
+    .ts: kebab-case
+    .tsx: kebab-case
+
+  apps/mobile/app:
+    .dir: kebab-case | regex:^\(.+\)$ | regex:^\[.+\]$
+    .ts: kebab-case | regex:^\+.+$
+    .tsx: kebab-case | regex:^_.+$ | regex:^\[.+\]$ | regex:^\+.+$
+
+ignore:
+  - "**/node_modules"
+  - .git
+  - .claude
+  - "**/.expo"
+  - "**/.wrangler"
+  - "**/dist"
+  - "**/build"
+  - apps/mobile/ios
+  - apps/mobile/android
+  - apps/api/drizzle/meta
+  - .ls-lint.yml
+  - .oxlintrc.json
+  - .oxfmtrc.json
+  - pnpm-lock.yaml

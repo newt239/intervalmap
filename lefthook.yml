@@ -1,0 +1,22 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs}"
+      run: pnpm run lint:fix
+      stage_fixed: true
+      fail_text: リントエラーがあります
+    format:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md,yml,yaml}"
+      run: pnpm run format:fix
+      stage_fixed: true
+      fail_text: フォーマットエラーがあります
+    ls-lint:
+      run: pnpm run ls-lint
+      fail_text: ファイル名がkebab-case規約に違反しています
+
+pre-push:
+  commands:
+    codecheck:
+      run: pnpm run codecheck
+      fail_text: codecheckに失敗しました（typecheck/lint/format/ls-lint/knip）
