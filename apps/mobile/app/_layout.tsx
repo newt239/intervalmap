@@ -1,6 +1,15 @@
 import { Stack } from "expo-router";
 
-// ルートレイアウト。画面の作り込みは M3 以降で行う。
+// バックグラウンド位置タスクをアプリ起動時に必ず登録する。
+import "#/features/location/location-task";
+
+// ルートレイアウト。
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <Stack>
+      <Stack.Screen name="index" options={{ title: "intervalmap" }} />
+      <Stack.Screen name="session/[id]" options={{ title: "セッション" }} />
+      <Stack.Screen name="join/[code]" options={{ title: "セッションに参加" }} />
+    </Stack>
+  );
 }

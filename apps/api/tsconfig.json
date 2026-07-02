@@ -5,5 +5,5 @@
     "lib": ["esnext"],
     "types": ["@cloudflare/workers-types"]
   },
-  "include": ["src/**/*", "drizzle.config.ts", "cloudflare-test.d.ts"]
+  "include": ["src/**/*", "tests/**/*", "drizzle.config.ts", "cloudflare-test.d.ts"]
 }

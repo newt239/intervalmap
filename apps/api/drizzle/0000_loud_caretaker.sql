@@ -72,5 +72,8 @@ CREATE UNIQUE INDEX `sessions_invite_code_unique` ON `sessions` (`invite_code`);
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`display_name` text NOT NULL,
+	`auth_token` text NOT NULL,
 	`created_at` integer NOT NULL
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `users_auth_token_unique` ON `users` (`auth_token`);

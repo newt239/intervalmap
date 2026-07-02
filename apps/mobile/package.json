@@ -8,7 +8,7 @@
     "ios": "expo run:ios",
     "prebuild": "expo prebuild",
     "start": "expo start --dev-client",
-    "test": "echo \"mobile: no unit tests yet (E2E は将来 Maestro を検討, docs/HANDOFF.md §4)\"",
+    "test": "echo \"mobile: no unit tests yet (E2E は将来 Maestro を検討, docs/handoff.md §4)\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,12 +23,14 @@
     "expo-maps": "57.0.0",
     "expo-notifications": "57.0.2",
     "expo-router": "57.0.2",
+    "expo-secure-store": "57.0.0",
     "expo-task-manager": "57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
     "react-native-safe-area-context": "5.7.0",
-    "react-native-screens": "4.25.2"
+    "react-native-screens": "4.25.2",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "typescript": "6.0.3"

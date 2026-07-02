@@ -2,10 +2,10 @@
   "$schema": "./node_modules/knip/schema.json",
   "workspaces": {
     "apps/api": {
-      "entry": ["src/**/*.{spec,test}.ts"],
+      "entry": ["src/**/*.{spec,test}.ts", "tests/**/*.ts"],
       "vitest": false,
       "ignore": ["vitest.config.ts"],
-      "ignoreDependencies": ["@intervalmap/shared", "cloudflare"]
+      "ignoreDependencies": ["cloudflare"]
     },
     "apps/mobile": {
       "ignore": ["babel.config.js"],
