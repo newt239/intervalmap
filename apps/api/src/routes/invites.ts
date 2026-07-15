@@ -16,7 +16,7 @@ import { reconcileSessionStatus } from "../domain/session-status.ts";
 import { jsonError } from "../lib/http-error.ts";
 import { requireAuth, type AuthEnv } from "../middleware/auth.ts";
 
-export const newInviteCode = (): string => {
+const newInviteCode = (): string => {
   const bytes = new Uint8Array(INVITE_CODE_LENGTH);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => INVITE_ALPHABET.charAt(b % INVITE_ALPHABET.length)).join("");
