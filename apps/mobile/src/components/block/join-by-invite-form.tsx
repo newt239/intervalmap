@@ -56,7 +56,7 @@ export const JoinByInviteForm = ({ code }: Props) => {
       <FormSection
         footer={`${
           registered ? "登録済みの表示名を使用します。" : ""
-        }招待コードの種類によって位置共有のオン/オフが決まります。参加後にセッションの設定からいつでも変更できます。`}
+        }招待に含まれる権限の範囲で位置共有・閲覧ができます。参加後にセッションの設定から変更できます。`}
       >
         <FormLabelValue label="招待コード" value={code ?? "不明"} tone="muted" />
         <Controller

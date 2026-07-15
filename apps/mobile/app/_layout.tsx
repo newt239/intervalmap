@@ -15,7 +15,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="session/create" options={{ title: "セッションを作成" }} />
         <Stack.Screen name="session/[id]/index" options={{ title: "セッション" }} />
-        <Stack.Screen name="session/[id]/invite" options={{ title: "メンバーを招待" }} />
+        <Stack.Screen name="session/[id]/invite/index" options={{ title: "メンバーを招待" }} />
+        <Stack.Screen name="session/[id]/invite/[inviteId]" options={{ title: "招待" }} />
         <Stack.Screen name="session/[id]/settings" options={{ title: "共有設定" }} />
         <Stack.Screen name="session/[id]/member/[membershipId]" options={{ title: "メンバー" }} />
         <Stack.Screen name="join/index" options={{ title: "招待コードで参加" }} />

@@ -7,6 +7,13 @@
   "observability": {
     "enabled": true,
   },
+  // 招待リンクと well-known を API と同一ドメインで配信する。EXPO_PUBLIC_API_URL もここに揃える。
+  "routes": [
+    {
+      "pattern": "intervalmap.newt239.dev",
+      "custom_domain": true,
+    },
+  ],
   // D1 バインディング。database_id は wrangler d1 create で発行して差し替える。
   "d1_databases": [
     {

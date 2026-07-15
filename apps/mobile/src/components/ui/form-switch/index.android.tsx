@@ -6,7 +6,7 @@ import { fillMaxWidth, weight } from "@expo/ui/jetpack-compose/modifiers";
 import type { FormSwitchProps } from "./types";
 
 // Material 3 のスイッチ行。ラベルとスイッチを左右に並べる。
-export const FormSwitch = ({ label, value, onValueChange }: FormSwitchProps) => {
+export const FormSwitch = ({ label, value, onValueChange, disabled }: FormSwitchProps) => {
   const dark = useColorScheme() === "dark";
   return (
     <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
@@ -14,7 +14,7 @@ export const FormSwitch = ({ label, value, onValueChange }: FormSwitchProps) => 
         {label}
       </Text>
       <Spacer modifiers={[weight(1)]} />
-      <Switch value={value} onCheckedChange={onValueChange} />
+      <Switch value={value} onCheckedChange={onValueChange} enabled={!disabled} />
     </Row>
   );
 };

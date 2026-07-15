@@ -5,6 +5,7 @@ import { authQueryKey, loadAuth } from "#/lib/auth";
 import { locationTracker } from "#/lib/location/tracker";
 import {
   historyResponseSchema,
+  inviteListResponseSchema,
   mapResponseSchema,
   sessionDetailResponseSchema,
   sessionListResponseSchema,
@@ -29,6 +30,18 @@ export const useSessionDetail = (sessionId: string, token: string | undefined) =
     queryFn: async () => apiFetch(sessionDetailResponseSchema, `/sessions/${sessionId}`, { token }),
     enabled: token !== undefined,
     refetchInterval: (query) => (query.state.data?.session.status === "ended" ? false : 30_000),
+  });
+
+export const sessionInvitesQueryKey = (sessionId: string) =>
+  ["session", sessionId, "invites"] as const;
+
+// 招待の発行・一覧は主催者のみ。呼び出し側は主催者のときだけ token を渡す。
+export const useSessionInvites = (sessionId: string, token: string | undefined) =>
+  useQuery({
+    queryKey: sessionInvitesQueryKey(sessionId),
+    queryFn: async () =>
+      apiFetch(inviteListResponseSchema, `/sessions/${sessionId}/invites`, { token }),
+    enabled: token !== undefined,
   });
 
 export const useSessionMap = (sessionId: string, token: string | undefined) =>

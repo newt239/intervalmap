@@ -8,8 +8,10 @@ import { runScheduledTick } from "../src/domain/tick.ts";
 
 import type {
   AuthResponse,
+  CreateInviteInput,
   ErrorResponse,
   HistoryResponse,
+  InviteResponse,
   MapResponse,
   MembershipResponse,
   SessionDetailResponse,
@@ -45,6 +47,19 @@ const createSession = async (token: string): Promise<SessionWithMembershipRespon
   const res = await authedFetch(token, "/sessions", {
     method: "POST",
     body: JSON.stringify({ title: "テスト", intervalSec: 60, durationSec: 3600 }),
+  });
+  expect(res.status).toBe(201);
+  return res.json();
+};
+
+const createInvite = async (
+  token: string,
+  sessionId: string,
+  input?: CreateInviteInput,
+): Promise<InviteResponse> => {
+  const res = await authedFetch(token, `/sessions/${sessionId}/invites`, {
+    method: "POST",
+    body: JSON.stringify(input ?? { allowSharing: true, allowViewing: true }),
   });
   expect(res.status).toBe(201);
   return res.json();
@@ -104,20 +119,20 @@ describe("セッション作成と参加", () => {
 
     const created = await createSession(owner.token);
     expect(created.session.status).toBe("active");
-    expect(created.session.inviteCode).toHaveLength(10);
-    expect(created.session.viewerInviteCode).toHaveLength(10);
-    expect(created.session.viewerInviteCode).not.toBe(created.session.inviteCode);
     // 初回開示は開始から1インターバル後。
     expect(created.session.nextDisclosureAt).toBe(created.session.startsAt + 60 * 1000);
     expect(created.membership.role).toBe("owner");
 
-    const joinRes = await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    expect(invite.invite.code).toHaveLength(10);
+
+    const joinRes = await joinSession(member.token, invite.invite.code);
     expect(joinRes.status).toBe(201);
     const joined: SessionWithMembershipResponse = await joinRes.json();
     expect(joined.membership.role).toBe("member");
 
     // 再参加は既存 membership を返す。
-    const rejoinRes = await joinSession(member.token, created.session.inviteCode);
+    const rejoinRes = await joinSession(member.token, invite.invite.code);
     expect(rejoinRes.status).toBe(200);
 
     const detailRes = await authedFetch(member.token, `/sessions/${created.session.id}`);
@@ -143,7 +158,8 @@ describe("開示ビューの不変条件", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     const uploadRes = await uploadPoint(member.token, created.session.id, 35.68, 139.76);
     expect(uploadRes.status).toBe(200);
@@ -166,7 +182,8 @@ describe("開示ビューの不変条件", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     await uploadPoint(member.token, created.session.id, 35, 139);
 
@@ -240,7 +257,8 @@ describe("期限と終了の不変条件", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     const endRes = await authedFetch(owner.token, `/sessions/${created.session.id}/end`, {
       method: "POST",
@@ -251,7 +269,7 @@ describe("期限と終了の不変条件", () => {
     expect(uploadRes.status).toBe(410);
 
     const late = await registerUser("遅刻者");
-    const joinRes = await joinSession(late.token, created.session.inviteCode);
+    const joinRes = await joinSession(late.token, invite.invite.code);
     expect(joinRes.status).toBe(410);
   });
 
@@ -259,7 +277,8 @@ describe("期限と終了の不変条件", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     const endRes = await authedFetch(member.token, `/sessions/${created.session.id}/end`, {
       method: "POST",
@@ -273,7 +292,8 @@ describe("参加中セッション一覧", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
     // member が参加していないセッションは一覧に出ない。
     await createSession(owner.token);
 
@@ -313,7 +333,8 @@ describe("移動履歴の不変条件", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     await uploadPoint(member.token, created.session.id, 35, 139);
 
@@ -364,30 +385,41 @@ describe("共有・閲覧設定", () => {
     return res.json();
   };
 
-  it("共有用コードで参加すると共有オン、閲覧用コードで参加すると共有オフで始まる", async () => {
+  it("招待に含めた権限が参加後の初期状態と上限になる", async () => {
     const owner = await registerUser("主催者");
     const sharer = await registerUser("共有参加者");
     const viewer = await registerUser("閲覧参加者");
     const created = await createSession(owner.token);
 
-    const sharerRes = await joinSession(sharer.token, created.session.inviteCode);
+    const fullInvite = await createInvite(owner.token, created.session.id);
+    const sharerRes = await joinSession(sharer.token, fullInvite.invite.code);
     expect(sharerRes.status).toBe(201);
     const sharerJoined: SessionWithMembershipResponse = await sharerRes.json();
     expect(sharerJoined.membership.sharingEnabled).toBe(true);
     expect(sharerJoined.membership.viewingEnabled).toBe(true);
+    expect(sharerJoined.membership.allowedSharing).toBe(true);
+    expect(sharerJoined.membership.allowedViewing).toBe(true);
 
-    const viewerRes = await joinSession(viewer.token, created.session.viewerInviteCode);
+    const viewerInvite = await createInvite(owner.token, created.session.id, {
+      allowSharing: false,
+      allowViewing: true,
+    });
+    const viewerRes = await joinSession(viewer.token, viewerInvite.invite.code);
     expect(viewerRes.status).toBe(201);
     const viewerJoined: SessionWithMembershipResponse = await viewerRes.json();
     expect(viewerJoined.membership.sharingEnabled).toBe(false);
     expect(viewerJoined.membership.viewingEnabled).toBe(true);
+    expect(viewerJoined.membership.allowedSharing).toBe(false);
+    expect(viewerJoined.membership.allowedViewing).toBe(true);
   });
 
   it("共有オフ中のアップロードをサーバー側で拒否する", async () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.viewerInviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
+    await patchMe(member.token, created.session.id, { sharingEnabled: false });
 
     const uploadRes = await uploadPoint(member.token, created.session.id, 35, 139);
     expect(uploadRes.status).toBe(409);
@@ -399,7 +431,8 @@ describe("共有・閲覧設定", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     await uploadPoint(member.token, created.session.id, 35, 139);
     await forceDisclosure(created.session.id);
@@ -420,7 +453,8 @@ describe("共有・閲覧設定", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
-    await joinSession(member.token, created.session.inviteCode);
+    const invite = await createInvite(owner.token, created.session.id);
+    await joinSession(member.token, invite.invite.code);
 
     await uploadPoint(owner.token, created.session.id, 34, 138);
     await uploadPoint(member.token, created.session.id, 35, 139);

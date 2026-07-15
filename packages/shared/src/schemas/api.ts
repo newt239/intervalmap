@@ -21,7 +21,7 @@ export const userResponseSchema = z.object({
 });
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
-// 共有用・閲覧用どちらの招待コードかで参加後の初期共有状態が決まる。
+// 招待コードに含まれた権限が参加後の上限と初期状態を決める。
 export const joinSessionInputSchema = z.object({
   inviteCode: z.string().min(1),
 });

@@ -22,5 +22,11 @@ export const MIN_SESSION_DURATION_SEC = 60;
 // 招待コードの文字数。短命かつ推測不能であること。
 export const INVITE_CODE_LENGTH = 10;
 
+// 招待コードの文字集合。紛らわしい文字を除いた32文字で modulo バイアスもない。
+export const INVITE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
+
+// 招待リンクのベース URL。リンクは `${INVITE_URL_BASE}/join/${code}` で組み立てる。
+export const INVITE_URL_BASE = "https://intervalmap.newt239.dev";
+
 // 位置バッチアップロードで一度に受け付ける最大点数。
 export const MAX_LOCATION_BATCH_SIZE = 100;

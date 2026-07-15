@@ -8,7 +8,11 @@ import { runScheduledTick } from "../src/domain/tick.ts";
 
 import type { PushMessage } from "../src/lib/expo-push.ts";
 
-import type { AuthResponse, SessionWithMembershipResponse } from "@intervalmap/shared";
+import type {
+  AuthResponse,
+  InviteResponse,
+  SessionWithMembershipResponse,
+} from "@intervalmap/shared";
 
 // M5 見守り機能の統合テスト。
 // 1. 開示プッシュのファンアウト
@@ -87,9 +91,14 @@ describe("開示プッシュ", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
+    const inviteRes = await authedFetch(owner.token, `/sessions/${created.session.id}/invites`, {
+      method: "POST",
+      body: JSON.stringify({ allowSharing: true, allowViewing: true }),
+    });
+    const { invite }: InviteResponse = await inviteRes.json();
     await authedFetch(member.token, "/sessions/join", {
       method: "POST",
-      body: JSON.stringify({ inviteCode: created.session.inviteCode }),
+      body: JSON.stringify({ inviteCode: invite.code }),
     });
     await registerPushToken(owner.token, "ExponentPushToken[owner]");
     await registerPushToken(member.token, "ExponentPushToken[member]");
@@ -160,9 +169,14 @@ describe("無応答アラート", () => {
     const owner = await registerUser("主催者");
     const member = await registerUser("参加者");
     const created = await createSession(owner.token);
+    const inviteRes = await authedFetch(owner.token, `/sessions/${created.session.id}/invites`, {
+      method: "POST",
+      body: JSON.stringify({ allowSharing: true, allowViewing: true }),
+    });
+    const { invite }: InviteResponse = await inviteRes.json();
     const joinRes = await authedFetch(member.token, "/sessions/join", {
       method: "POST",
-      body: JSON.stringify({ inviteCode: created.session.inviteCode }),
+      body: JSON.stringify({ inviteCode: invite.code }),
     });
     const joined: SessionWithMembershipResponse = await joinRes.json();
     await registerPushToken(owner.token, "ExponentPushToken[owner]");

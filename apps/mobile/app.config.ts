@@ -15,9 +15,20 @@ const config: ExpoConfig = {
     infoPlist: {
       UIBackgroundModes: ["location"],
     },
+    // 招待リンクのユニバーサルリンク。AASA は API Worker が配信する。
+    associatedDomains: ["applinks:intervalmap.newt239.dev"],
   },
   android: {
     package: "dev.newt239.intervalmap",
+    // 招待リンクの App Links。assetlinks.json は API Worker が配信する。
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [{ scheme: "https", host: "intervalmap.newt239.dev", pathPrefix: "/join" }],
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
   },
   plugins: [
     "expo-router",

@@ -67,7 +67,11 @@ export const SharingSettings = ({ sessionId }: Props) => {
     <FormScreen insetTop={false}>
       <FormSection
         title="自分の位置"
-        footer="オフにすると位置の送信が止まり、他のメンバーからは見えなくなります"
+        footer={
+          membership.allowedSharing
+            ? "オフにすると位置の送信が止まり、他のメンバーからは見えなくなります"
+            : "この招待では位置共有は許可されていません"
+        }
       >
         <FormSwitch
           label="自分の位置を共有"
@@ -75,11 +79,16 @@ export const SharingSettings = ({ sessionId }: Props) => {
           onValueChange={(value) => {
             mutation.mutate({ sharingEnabled: value });
           }}
+          disabled={!membership.allowedSharing}
         />
       </FormSection>
       <FormSection
         title="他のメンバーの位置"
-        footer="オフにすると地図と履歴に他のメンバーが表示されなくなります"
+        footer={
+          membership.allowedViewing
+            ? "オフにすると地図と履歴に他のメンバーが表示されなくなります"
+            : "この招待では閲覧は許可されていません"
+        }
       >
         <FormSwitch
           label="他のメンバーの位置を表示"
@@ -87,6 +96,7 @@ export const SharingSettings = ({ sessionId }: Props) => {
           onValueChange={(value) => {
             mutation.mutate({ viewingEnabled: value });
           }}
+          disabled={!membership.allowedViewing}
         />
       </FormSection>
     </FormScreen>

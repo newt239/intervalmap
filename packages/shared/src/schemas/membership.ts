@@ -11,6 +11,9 @@ export const membershipSchema = z.object({
   role: roleSchema,
   sharingEnabled: z.boolean(),
   viewingEnabled: z.boolean(),
+  // 招待で許可された上限。sharingEnabled / viewingEnabled はこの範囲でのみ有効化できる。
+  allowedSharing: z.boolean(),
+  allowedViewing: z.boolean(),
   lastUploadedAt: epochMsSchema.nullable(),
   joinedAt: epochMsSchema,
 });

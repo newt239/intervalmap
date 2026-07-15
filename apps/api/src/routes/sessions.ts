@@ -1,10 +1,9 @@
-import { and, asc, desc, eq, lte, or } from "drizzle-orm";
+import { and, asc, desc, eq, lte } from "drizzle-orm";
 import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
 import {
   createSessionInputSchema,
-  INVITE_CODE_LENGTH,
   joinSessionInputSchema,
   updateMembershipInputSchema,
   uploadLocationsInputSchema,
@@ -22,6 +21,7 @@ import {
 
 import {
   disclosures,
+  invites,
   locationPoints,
   memberships,
   sessions,
@@ -39,21 +39,10 @@ import { requireAuth, type AuthEnv } from "../middleware/auth.ts";
 // D1 のバインドパラメータ上限100を超えないよう位置点の insert を分割する。
 const LOCATION_INSERT_CHUNK = 10;
 
-// 招待コードは短命かつ推測不能であること。紛らわしい文字を除いた32文字で modulo バイアスもない。
-const INVITE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
-
-const newInviteCode = (): string => {
-  const bytes = new Uint8Array(INVITE_CODE_LENGTH);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => INVITE_ALPHABET.charAt(b % INVITE_ALPHABET.length)).join("");
-};
-
 const toSessionDto = (row: SessionRow): Session => ({
   id: row.id,
   ownerId: row.ownerId,
   title: row.title,
-  inviteCode: row.inviteCode,
-  viewerInviteCode: row.viewerInviteCode,
   intervalSec: row.intervalSec,
   startsAt: row.startsAt,
   expiresAt: row.expiresAt,
@@ -71,6 +60,8 @@ const toMembershipDto = (row: MembershipRow, displayName: string): Membership =>
   role: row.role,
   sharingEnabled: row.sharingEnabled,
   viewingEnabled: row.viewingEnabled,
+  allowedSharing: row.allowedSharing,
+  allowedViewing: row.allowedViewing,
   lastUploadedAt: row.lastUploadedAt,
   joinedAt: row.joinedAt,
 });
@@ -131,35 +122,21 @@ export const sessionsRoute = new Hono<AuthEnv>()
     const startsAt = now;
     const expiresAt = startsAt + parsed.data.durationSec * 1000;
 
-    // 招待コードの unique 衝突に備えて数回リトライする。
-    let sessionRow: SessionRow | null = null;
-    for (let attempt = 0; attempt < 3 && sessionRow === null; attempt++) {
-      const candidate: SessionRow = {
-        id: crypto.randomUUID(),
-        ownerId: user.id,
-        title: parsed.data.title,
-        inviteCode: newInviteCode(),
-        viewerInviteCode: newInviteCode(),
-        intervalSec: parsed.data.intervalSec,
-        startsAt,
-        expiresAt,
-        precision: parsed.data.precision,
-        status: "active",
-        // 初回開示は開始から1インターバル後。
-        nextDisclosureAt: startsAt + parsed.data.intervalSec * 1000,
-        endedAt: null,
-        createdAt: now,
-      };
-      try {
-        await db.insert(sessions).values(candidate);
-        sessionRow = candidate;
-      } catch {
-        // unique 制約違反とみなして再試行する。
-      }
-    }
-    if (sessionRow === null) {
-      return jsonError(c, 500, "session_create_failed", "セッションを作成できませんでした");
-    }
+    const sessionRow: SessionRow = {
+      id: crypto.randomUUID(),
+      ownerId: user.id,
+      title: parsed.data.title,
+      intervalSec: parsed.data.intervalSec,
+      startsAt,
+      expiresAt,
+      precision: parsed.data.precision,
+      status: "active",
+      // 初回開示は開始から1インターバル後。
+      nextDisclosureAt: startsAt + parsed.data.intervalSec * 1000,
+      endedAt: null,
+      createdAt: now,
+    };
+    await db.insert(sessions).values(sessionRow);
 
     const membershipRow: MembershipRow = {
       id: crypto.randomUUID(),
@@ -168,6 +145,8 @@ export const sessionsRoute = new Hono<AuthEnv>()
       role: "owner",
       sharingEnabled: true,
       viewingEnabled: true,
+      allowedSharing: true,
+      allowedViewing: true,
       lastUploadedAt: null,
       joinedAt: now,
     };
@@ -211,7 +190,7 @@ export const sessionsRoute = new Hono<AuthEnv>()
     return c.json(body);
   })
 
-  // 招待コードで参加する。終了済みセッションには参加できない。
+  // 招待コードで参加する。失効した招待と終了済みセッションには参加できない。
   .post("/join", async (c) => {
     const parsed = joinSessionInputSchema.safeParse(await c.req.json().catch(() => null));
     if (!parsed.success) {
@@ -221,38 +200,56 @@ export const sessionsRoute = new Hono<AuthEnv>()
     const db = drizzle(c.env.DB);
     const now = Date.now();
 
-    const [found] = await db
+    const [invite] = await db
       .select()
-      .from(sessions)
-      .where(
-        or(
-          eq(sessions.inviteCode, parsed.data.inviteCode),
-          eq(sessions.viewerInviteCode, parsed.data.inviteCode),
-        ),
-      )
+      .from(invites)
+      .where(eq(invites.code, parsed.data.inviteCode))
       .limit(1);
+    if (!invite) {
+      return jsonError(c, 404, "invite_not_found", "招待コードが見つかりません");
+    }
+    if (invite.revokedAt !== null) {
+      return jsonError(c, 410, "invite_revoked", "この招待は無効化されています");
+    }
+    const found = await findSessionById(db, invite.sessionId);
     if (!found) {
-      return jsonError(c, 404, "session_not_found", "招待コードが見つかりません");
+      return jsonError(c, 404, "session_not_found", "セッションが見つかりません");
     }
     const session = await reconcileSessionStatus(db, found, now);
     if (session.status === "ended") {
       return jsonError(c, 410, "session_ended", "このセッションは終了しています");
     }
 
-    // 閲覧用コードで参加したメンバーは共有オフで始まる。以降は本人が設定で変更できる。
-    const asViewer = parsed.data.inviteCode === session.viewerInviteCode;
+    // 招待に含めた権限が membership の上限と初期状態を決めるプライバシー不変条件。
+    // 再参加は上限を和集合に広げるだけで、enabled は本人の設定を変えない。
     const existing = await findMembership(db, session.id, user.id);
-    const membershipRow: MembershipRow = existing ?? {
-      id: crypto.randomUUID(),
-      sessionId: session.id,
-      userId: user.id,
-      role: "member",
-      sharingEnabled: !asViewer,
-      viewingEnabled: true,
-      lastUploadedAt: null,
-      joinedAt: now,
-    };
-    if (!existing) {
+    const membershipRow: MembershipRow = existing
+      ? {
+          ...existing,
+          allowedSharing: existing.allowedSharing || invite.allowSharing,
+          allowedViewing: existing.allowedViewing || invite.allowViewing,
+        }
+      : {
+          id: crypto.randomUUID(),
+          sessionId: session.id,
+          userId: user.id,
+          role: "member",
+          sharingEnabled: invite.allowSharing,
+          viewingEnabled: invite.allowViewing,
+          allowedSharing: invite.allowSharing,
+          allowedViewing: invite.allowViewing,
+          lastUploadedAt: null,
+          joinedAt: now,
+        };
+    if (existing) {
+      await db
+        .update(memberships)
+        .set({
+          allowedSharing: membershipRow.allowedSharing,
+          allowedViewing: membershipRow.allowedViewing,
+        })
+        .where(eq(memberships.id, existing.id));
+    } else {
       await db.insert(memberships).values(membershipRow);
     }
 
@@ -308,6 +305,13 @@ export const sessionsRoute = new Hono<AuthEnv>()
     const membership = await findMembership(db, found.id, user.id);
     if (!membership) {
       return jsonError(c, 403, "not_a_member", "このセッションのメンバーではありません");
+    }
+    // 招待で許可されなかった権限は有効化できないプライバシー不変条件。
+    if (parsed.data.sharingEnabled === true && !membership.allowedSharing) {
+      return jsonError(c, 403, "sharing_not_allowed", "この招待では位置共有は許可されていません");
+    }
+    if (parsed.data.viewingEnabled === true && !membership.allowedViewing) {
+      return jsonError(c, 403, "viewing_not_allowed", "この招待では閲覧は許可されていません");
     }
 
     const updated: MembershipRow = {
@@ -375,6 +379,10 @@ export const sessionsRoute = new Hono<AuthEnv>()
     if (session.status !== "active") {
       return jsonError(c, 409, "session_not_active", "セッションが開始されていません");
     }
+    if (!membership.allowedSharing) {
+      // 共有を許可されていないメンバーの位置は保存しない。上限強制の二重化。
+      return jsonError(c, 403, "sharing_not_allowed", "この招待では位置共有は許可されていません");
+    }
     if (!membership.sharingEnabled) {
       // 共有オフ中の位置を保存しない。保存すると再オン時に過去の位置が開示されてしまう。
       return jsonError(c, 409, "sharing_disabled", "位置共有がオフになっています");
@@ -435,12 +443,13 @@ export const sessionsRoute = new Hono<AuthEnv>()
       .where(eq(memberships.sessionId, session.id));
 
     // 開示済み位置。disclosure がまだ無ければ誰の位置も返さない。
-    // 閲覧オフの本人には他メンバーの位置をサーバー側で返さない。
+    // 閲覧オフまたは閲覧を許可されていない本人には他メンバーの位置をサーバー側で返さない。
     let disclosed: DisclosedLocation[] = [];
-    if (disclosedAt !== null && selfMembership.viewingEnabled) {
+    if (disclosedAt !== null && selfMembership.viewingEnabled && selfMembership.allowedViewing) {
       const results = await Promise.all(
         memberRows
-          .filter((r) => r.membership.sharingEnabled)
+          // 共有オフまたは共有を許可されていないメンバーの位置は開示しない。
+          .filter((r) => r.membership.sharingEnabled && r.membership.allowedSharing)
           .map(async (r) => {
             const point = await findLatestPoint(db, r.membership.id, disclosedAt);
             if (!point) {
@@ -535,10 +544,14 @@ export const sessionsRoute = new Hono<AuthEnv>()
       }
 
       for (const r of memberRows) {
-        // 共有オフのメンバーの履歴は本人以外に出さない。閲覧オフの本人には他人の履歴を出さない。
+        // 共有オフまたは共有を許可されていないメンバーの履歴は本人以外に出さない。
+        // 閲覧オフまたは閲覧を許可されていない本人には他人の履歴を出さない。
         if (
           r.membership.id !== selfMembership.id &&
-          (!r.membership.sharingEnabled || !selfMembership.viewingEnabled)
+          (!r.membership.sharingEnabled ||
+            !r.membership.allowedSharing ||
+            !selfMembership.viewingEnabled ||
+            !selfMembership.allowedViewing)
         ) {
           continue;
         }

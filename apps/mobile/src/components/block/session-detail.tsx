@@ -92,14 +92,16 @@ export const SessionDetail = ({ sessionId }: Props) => {
           title: detail.session.title,
           headerRight: () => (
             <View style={styles.headerActions}>
-              <Pressable
-                onPress={() => {
-                  router.push(`/session/${sessionId}/invite`);
-                }}
-                hitSlop={8}
-              >
-                <Text style={[styles.headerAction, { color: theme.tint }]}>招待</Text>
-              </Pressable>
+              {selfMembership?.role === "owner" ? (
+                <Pressable
+                  onPress={() => {
+                    router.push(`/session/${sessionId}/invite`);
+                  }}
+                  hitSlop={8}
+                >
+                  <Text style={[styles.headerAction, { color: theme.tint }]}>招待</Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 onPress={() => {
                   router.push(`/session/${sessionId}/settings`);

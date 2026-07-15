@@ -27,11 +27,14 @@ export const SessionJoinForm = () => {
         Alert.alert("表示名が未登録です", "わたしタブで表示名を登録してください");
         return;
       }
+      // 招待リンクの貼り付けにも対応する。URL でなければ生のコードとして扱う。
+      const match = /join\/(?<code>[a-z0-9]+)/u.exec(inviteCode);
+      const code = (match?.groups?.code ?? inviteCode).trim();
       try {
         const res = await apiFetch(sessionWithMembershipResponseSchema, "/sessions/join", {
           method: "POST",
           token: auth.token,
-          body: JSON.stringify({ inviteCode: inviteCode.trim() }),
+          body: JSON.stringify({ inviteCode: code }),
         });
         router.push(`/session/${res.session.id}`);
       } catch (error) {
@@ -51,7 +54,11 @@ export const SessionJoinForm = () => {
           name="inviteCode"
           rules={{ validate: (value) => value.trim() !== "" }}
           render={({ field }) => (
-            <FormTextField label="招待コード" value={field.value} onChangeText={field.onChange} />
+            <FormTextField
+              label="招待コードまたはリンク"
+              value={field.value}
+              onChangeText={field.onChange}
+            />
           )}
         />
       </FormSection>
