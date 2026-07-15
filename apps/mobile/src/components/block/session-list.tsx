@@ -5,7 +5,6 @@ import { StyleSheet, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Fab } from "#/components/ui/fab";
-import { MessageView } from "#/components/ui/message-view";
 import { ScreenList } from "#/components/ui/screen-list";
 import { ScreenTitle } from "#/components/ui/screen-title";
 import { useTheme } from "#/components/ui/theme";
@@ -58,32 +57,26 @@ export const SessionList = () => {
       edges={["top"]}
     >
       <ScreenTitle title="セッション" />
-      {auth === null ? (
-        <MessageView message="先にわたしタブで表示名を登録してください" />
-      ) : (
-        <>
-          <ScreenList
-            items={items}
-            onPressItem={(id) => {
-              router.push(`/session/${id}`);
-            }}
-            refreshing={isRefetching}
-            onRefresh={async () => {
-              await refetch();
-            }}
-            emptyTitle="参加中のセッションはありません"
-            emptyDescription="セッションを作成するか、わたしタブから招待コードで参加してください"
-          />
-          <View style={[styles.fab, { bottom: insets.bottom + 16 }]}>
-            <Fab
-              title="セッションを作成"
-              onPress={() => {
-                router.push("/session/create");
-              }}
-            />
-          </View>
-        </>
-      )}
+      <ScreenList
+        items={items}
+        onPressItem={(id) => {
+          router.push(`/session/${id}`);
+        }}
+        refreshing={isRefetching}
+        onRefresh={async () => {
+          await refetch();
+        }}
+        emptyTitle="参加中のセッションはありません"
+        emptyDescription="セッションを作成するか、わたしタブから招待コードで参加してください"
+      />
+      <View style={[styles.fab, { bottom: insets.bottom + 16 }]}>
+        <Fab
+          title="セッションを作成"
+          onPress={() => {
+            router.push("/session/create");
+          }}
+        />
+      </View>
     </SafeAreaView>
   );
 };
