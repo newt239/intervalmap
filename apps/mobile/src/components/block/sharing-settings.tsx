@@ -54,7 +54,7 @@ export const SharingSettings = ({ sessionId }: Props) => {
   });
 
   if (auth === null) {
-    return <MessageView message="先にホーム画面で表示名を登録してください" />;
+    return <MessageView message="先にわたしタブで表示名を登録してください" />;
   }
   if (detail.isError) {
     return <MessageView message={detail.error.message} />;

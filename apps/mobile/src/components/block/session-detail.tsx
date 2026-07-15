@@ -40,7 +40,7 @@ export const SessionDetail = ({ sessionId }: Props) => {
   const now = useNow();
 
   if (auth === null) {
-    return <MessageView message="先にホーム画面で表示名を登録してください" />;
+    return <MessageView message="先にわたしタブで表示名を登録してください" />;
   }
   if (detailQuery.isError) {
     return <MessageView message={detailQuery.error.message} />;

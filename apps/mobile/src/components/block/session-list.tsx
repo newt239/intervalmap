@@ -1,9 +1,10 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Fab } from "#/components/ui/fab";
 import { MessageView } from "#/components/ui/message-view";
 import { ScreenList } from "#/components/ui/screen-list";
 import { ScreenTitle } from "#/components/ui/screen-title";
@@ -24,6 +25,7 @@ const formatRemaining = (ms: number): string => {
 export const SessionList = () => {
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: auth } = useAuth();
   const { data: list, refetch, isRefetching } = useSessionList(auth?.token);
 
@@ -57,26 +59,40 @@ export const SessionList = () => {
     >
       <ScreenTitle title="セッション" />
       {auth === null ? (
-        <MessageView message="先にホーム画面で表示名を登録してください" />
+        <MessageView message="先にわたしタブで表示名を登録してください" />
       ) : (
-        <ScreenList
-          items={items}
-          onPressItem={(id) => {
-            router.push(`/session/${id}`);
-          }}
-          refreshing={isRefetching}
-          onRefresh={async () => {
-            await refetch();
-          }}
-          emptyTitle="参加中のセッションはありません"
-          emptyDescription="ホーム画面からセッションを作成するか招待コードで参加してください"
-        />
+        <>
+          <ScreenList
+            items={items}
+            onPressItem={(id) => {
+              router.push(`/session/${id}`);
+            }}
+            refreshing={isRefetching}
+            onRefresh={async () => {
+              await refetch();
+            }}
+            emptyTitle="参加中のセッションはありません"
+            emptyDescription="セッションを作成するか、わたしタブから招待コードで参加してください"
+          />
+          <View style={[styles.fab, { bottom: insets.bottom + 16 }]}>
+            <Fab
+              title="セッションを作成"
+              onPress={() => {
+                router.push("/session/create");
+              }}
+            />
+          </View>
+        </>
       )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    right: 16,
+  },
   safeArea: {
     flex: 1,
   },

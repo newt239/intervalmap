@@ -29,7 +29,7 @@ export const MemberDetail = ({ sessionId, membershipId }: Props) => {
   const historyQuery = useSessionHistory(sessionId, auth?.token, mapQuery.data?.serverNow);
 
   if (auth === null) {
-    return <MessageView message="先にホーム画面で表示名を登録してください" />;
+    return <MessageView message="先にわたしタブで表示名を登録してください" />;
   }
   const errorQuery = [detailQuery, mapQuery, historyQuery].find((q) => q.isError);
   if (errorQuery?.error) {

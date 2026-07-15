@@ -24,7 +24,7 @@ export const SessionJoinForm = () => {
   const onSubmit = handleSubmit(
     async ({ inviteCode }) => {
       if (!auth) {
-        Alert.alert("表示名が未登録です", "設定タブで表示名を登録してください");
+        Alert.alert("表示名が未登録です", "わたしタブで表示名を登録してください");
         return;
       }
       try {

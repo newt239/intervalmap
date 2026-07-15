@@ -1,12 +1,5 @@
-import { SessionCreateForm } from "#/components/block/session-create-form";
-import { SessionJoinForm } from "#/components/block/session-join-form";
-import { FormScreen } from "#/components/ui/form-screen";
+import { SessionList } from "#/components/block/session-list";
 
-export default function HomeScreen() {
-  return (
-    <FormScreen title="intervalmap">
-      <SessionCreateForm />
-      <SessionJoinForm />
-    </FormScreen>
-  );
+export default function SessionsScreen() {
+  return <SessionList />;
 }

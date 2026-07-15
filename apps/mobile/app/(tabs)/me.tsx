@@ -4,10 +4,18 @@ import { FormLink } from "#/components/ui/form-link";
 import { FormScreen } from "#/components/ui/form-screen";
 import { FormSection } from "#/components/ui/form-section";
 
-export default function SettingsScreen() {
+export default function MeScreen() {
   const router = useRouter();
   return (
-    <FormScreen title="設定">
+    <FormScreen title="わたし">
+      <FormSection>
+        <FormLink
+          label="招待コードで参加"
+          onPress={() => {
+            router.push("/join");
+          }}
+        />
+      </FormSection>
       <FormSection>
         <FormLink
           label="表示名"

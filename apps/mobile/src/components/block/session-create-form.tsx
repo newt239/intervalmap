@@ -43,7 +43,7 @@ export const SessionCreateForm = () => {
   const onSubmit = handleSubmit(
     async ({ title, intervalSec, durationSec }) => {
       if (!auth) {
-        Alert.alert("表示名が未登録です", "設定タブで表示名を登録してください");
+        Alert.alert("表示名が未登録です", "わたしタブで表示名を登録してください");
         return;
       }
       try {
