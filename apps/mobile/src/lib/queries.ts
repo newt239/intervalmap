@@ -16,7 +16,7 @@ export const useAuth = () =>
 export const useSessionList = (token: string | undefined) =>
   useQuery({
     queryKey: ["sessions"],
-    queryFn: () => apiFetch(sessionListResponseSchema, "/sessions", { token }),
+    queryFn: async () => apiFetch(sessionListResponseSchema, "/sessions", { token }),
     enabled: token !== undefined,
   });
 
@@ -26,7 +26,7 @@ export const sessionDetailQueryKey = (sessionId: string) =>
 export const useSessionDetail = (sessionId: string, token: string | undefined) =>
   useQuery({
     queryKey: sessionDetailQueryKey(sessionId),
-    queryFn: () => apiFetch(sessionDetailResponseSchema, `/sessions/${sessionId}`, { token }),
+    queryFn: async () => apiFetch(sessionDetailResponseSchema, `/sessions/${sessionId}`, { token }),
     enabled: token !== undefined,
     refetchInterval: (query) => (query.state.data?.session.status === "ended" ? false : 30_000),
   });
@@ -50,9 +50,9 @@ export const useSessionMap = (sessionId: string, token: string | undefined) =>
       if (!data || data.sessionStatus === "ended") {
         return false;
       }
-      return data.nextDisclosureAt !== null
-        ? Math.max(2000, data.nextDisclosureAt - data.serverNow + 2000)
-        : 30_000;
+      return data.nextDisclosureAt === null
+        ? 30_000
+        : Math.max(2000, data.nextDisclosureAt - data.serverNow + 2000);
     },
   });
 
@@ -64,7 +64,8 @@ export const useSessionHistory = (
 ) =>
   useQuery({
     queryKey: ["session", sessionId, "history", disclosedAt ?? 0],
-    queryFn: () => apiFetch(historyResponseSchema, `/sessions/${sessionId}/history`, { token }),
+    queryFn: async () =>
+      apiFetch(historyResponseSchema, `/sessions/${sessionId}/history`, { token }),
     enabled: token !== undefined && disclosedAt !== undefined,
     placeholderData: (prev) => prev,
   });

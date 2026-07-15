@@ -57,7 +57,9 @@ export const SessionCreateForm = () => {
         Alert.alert("作成に失敗しました", error instanceof Error ? error.message : String(error));
       }
     },
-    () => Alert.alert("入力エラー", "セッション名を入力してください"),
+    () => {
+      Alert.alert("入力エラー", "セッション名を入力してください");
+    },
   );
 
   return (
@@ -101,7 +103,13 @@ export const SessionCreateForm = () => {
           )}
         />
       </FormSection>
-      <FormButton title="作成する" onPress={onSubmit} disabled={formState.isSubmitting} />
+      <FormButton
+        title="作成する"
+        onPress={() => {
+          void onSubmit();
+        }}
+        disabled={formState.isSubmitting}
+      />
     </>
   );
 };

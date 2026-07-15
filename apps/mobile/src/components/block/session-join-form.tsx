@@ -38,7 +38,9 @@ export const SessionJoinForm = () => {
         Alert.alert("参加に失敗しました", error instanceof Error ? error.message : String(error));
       }
     },
-    () => Alert.alert("入力エラー", "招待コードを入力してください"),
+    () => {
+      Alert.alert("入力エラー", "招待コードを入力してください");
+    },
   );
 
   return (
@@ -53,7 +55,13 @@ export const SessionJoinForm = () => {
           )}
         />
       </FormSection>
-      <FormButton title="参加する" onPress={onSubmit} disabled={formState.isSubmitting} />
+      <FormButton
+        title="参加する"
+        onPress={() => {
+          void onSubmit();
+        }}
+        disabled={formState.isSubmitting}
+      />
     </>
   );
 };

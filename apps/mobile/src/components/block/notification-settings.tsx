@@ -18,7 +18,10 @@ export const NotificationSettings = () => {
   // 設定アプリから戻ったときは AppState 連動の再取得で最新の権限状態を映す。
   const { data: status, refetch } = useQuery({
     queryKey: ["notification-permission"],
-    queryFn: async () => (await Notifications.getPermissionsAsync()).status,
+    queryFn: async () => {
+      const permission = await Notifications.getPermissionsAsync();
+      return permission.status;
+    },
   });
 
   const register = useMutation({
@@ -28,11 +31,16 @@ export const NotificationSettings = () => {
         // OS のダイアログを出せない状態では設定アプリへ誘導する。
         Alert.alert("通知が拒否されています", "設定アプリから通知を許可してください", [
           { text: "キャンセル", style: "cancel" },
-          { text: "設定を開く", onPress: () => Linking.openSettings() },
+          {
+            text: "設定を開く",
+            onPress: () => {
+              void Linking.openSettings();
+            },
+          },
         ]);
       }
     },
-    onSettled: () => refetch(),
+    onSettled: async () => refetch(),
   });
 
   return (
@@ -41,17 +49,21 @@ export const NotificationSettings = () => {
         <FormLabelValue
           label="通知"
           value={status ? PERMISSION_LABELS[status] : "確認中"}
-          tone={status === "granted" ? "success" : "muted"}
+          tone={status === Notifications.PermissionStatus.GRANTED ? "success" : "muted"}
         />
       </FormSection>
       <FormButton
         title="通知を許可して登録"
-        onPress={() => register.mutate()}
+        onPress={() => {
+          register.mutate();
+        }}
         disabled={register.isPending}
       />
       <FormButton
         title="設定アプリを開く"
-        onPress={() => Linking.openSettings()}
+        onPress={() => {
+          void Linking.openSettings();
+        }}
         variant="secondary"
       />
     </>

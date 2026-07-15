@@ -61,7 +61,9 @@ export const SessionList = () => {
       ) : (
         <ScreenList
           items={items}
-          onPressItem={(id) => router.push(`/session/${id}`)}
+          onPressItem={(id) => {
+            router.push(`/session/${id}`);
+          }}
           refreshing={isRefetching}
           onRefresh={async () => {
             await refetch();

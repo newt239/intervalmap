@@ -10,9 +10,11 @@ import { MessageView } from "#/components/ui/message-view";
 import { apiFetch } from "#/lib/api-client";
 import { locationTracker } from "#/lib/location/tracker";
 import { sessionDetailQueryKey, useAuth, useSessionDetail } from "#/lib/queries";
-import { membershipResponseSchema } from "@intervalmap/shared";
-
-import type { SessionDetailResponse, UpdateMembershipInput } from "@intervalmap/shared";
+import {
+  membershipResponseSchema,
+  type SessionDetailResponse,
+  type UpdateMembershipInput,
+} from "@intervalmap/shared";
 
 type Props = {
   sessionId: string;
@@ -26,7 +28,7 @@ export const SharingSettings = ({ sessionId }: Props) => {
   const membership = detail.data?.members.find((m) => m.userId === auth?.userId) ?? null;
 
   const mutation = useMutation({
-    mutationFn: (patch: UpdateMembershipInput) =>
+    mutationFn: async (patch: UpdateMembershipInput) =>
       apiFetch(membershipResponseSchema, `/sessions/${sessionId}/me`, {
         method: "PATCH",
         token: auth?.token,
@@ -70,7 +72,9 @@ export const SharingSettings = ({ sessionId }: Props) => {
         <FormSwitch
           label="自分の位置を共有"
           value={membership.sharingEnabled}
-          onValueChange={(value) => mutation.mutate({ sharingEnabled: value })}
+          onValueChange={(value) => {
+            mutation.mutate({ sharingEnabled: value });
+          }}
         />
       </FormSection>
       <FormSection
@@ -80,7 +84,9 @@ export const SharingSettings = ({ sessionId }: Props) => {
         <FormSwitch
           label="他のメンバーの位置を表示"
           value={membership.viewingEnabled}
-          onValueChange={(value) => mutation.mutate({ viewingEnabled: value })}
+          onValueChange={(value) => {
+            mutation.mutate({ viewingEnabled: value });
+          }}
         />
       </FormSection>
     </FormScreen>

@@ -26,13 +26,12 @@ const registerUser = async (displayName: string): Promise<AuthResponse> => {
   return res.json();
 };
 
-const authedFetch = (token: string, path: string, init?: RequestInit) =>
+const authedFetch = async (token: string, path: string, init?: RequestInit) =>
   SELF.fetch(`https://example.com${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...init?.headers,
     },
   });
 

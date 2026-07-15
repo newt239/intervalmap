@@ -2,15 +2,16 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
-import { registerUserInputSchema, updateUserInputSchema } from "@intervalmap/shared";
+import {
+  registerUserInputSchema,
+  updateUserInputSchema,
+  type AuthResponse,
+  type UserResponse,
+} from "@intervalmap/shared";
 
 import { users } from "../db/schema.ts";
 import { jsonError } from "../lib/http-error.ts";
-import { requireAuth } from "../middleware/auth.ts";
-
-import type { AuthEnv } from "../middleware/auth.ts";
-
-import type { AuthResponse, UserResponse } from "@intervalmap/shared";
+import { requireAuth, type AuthEnv } from "../middleware/auth.ts";
 
 export const usersRoute = new Hono<AuthEnv>()
   // 匿名デバイス認証のユーザー登録。初回起動時に1回だけ呼ばれる想定。

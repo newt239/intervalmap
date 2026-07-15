@@ -14,11 +14,9 @@ import {
   pushTokens,
   sessions,
   users,
+  type SessionRow,
 } from "../db/schema.ts";
-import { sendExpoPush } from "../lib/expo-push.ts";
-
-import type { SessionRow } from "../db/schema.ts";
-import type { PushSender } from "../lib/expo-push.ts";
+import { sendExpoPush, type PushSender } from "../lib/expo-push.ts";
 
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 

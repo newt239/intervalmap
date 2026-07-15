@@ -2,15 +2,11 @@ import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
-import { registerPushTokenInputSchema } from "@intervalmap/shared";
+import { registerPushTokenInputSchema, type RegisterPushTokenResponse } from "@intervalmap/shared";
 
 import { pushTokens } from "../db/schema.ts";
 import { jsonError } from "../lib/http-error.ts";
-import { requireAuth } from "../middleware/auth.ts";
-
-import type { AuthEnv } from "../middleware/auth.ts";
-
-import type { RegisterPushTokenResponse } from "@intervalmap/shared";
+import { requireAuth, type AuthEnv } from "../middleware/auth.ts";
 
 export const meRoute = new Hono<AuthEnv>()
   .use(requireAuth)

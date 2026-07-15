@@ -45,7 +45,9 @@ export const InviteShare = ({ sessionId }: Props) => {
       </FormSection>
       <FormButton
         title="共有用コードを送る"
-        onPress={() => shareCode(session.inviteCode, "位置共有メンバー")}
+        onPress={() => {
+          shareCode(session.inviteCode, "位置共有メンバー");
+        }}
       />
 
       <FormSection
@@ -56,7 +58,9 @@ export const InviteShare = ({ sessionId }: Props) => {
       </FormSection>
       <FormButton
         title="閲覧用コードを送る"
-        onPress={() => shareCode(session.viewerInviteCode, "閲覧メンバー")}
+        onPress={() => {
+          shareCode(session.viewerInviteCode, "閲覧メンバー");
+        }}
       />
     </FormScreen>
   );

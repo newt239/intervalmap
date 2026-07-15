@@ -28,7 +28,9 @@ export const DisplayNameForm = () => {
         Alert.alert("保存に失敗しました", error instanceof Error ? error.message : String(error));
       }
     },
-    () => Alert.alert("入力エラー", "表示名を入力してください"),
+    () => {
+      Alert.alert("入力エラー", "表示名を入力してください");
+    },
   );
 
   return (
@@ -50,7 +52,9 @@ export const DisplayNameForm = () => {
       </FormSection>
       <FormButton
         title={registered ? "変更を保存" : "登録する"}
-        onPress={onSubmit}
+        onPress={() => {
+          void onSubmit();
+        }}
         disabled={formState.isSubmitting}
       />
     </>

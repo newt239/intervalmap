@@ -35,19 +35,27 @@
   ],
   "rules": {
     "complexity": "off",
+    "eqeqeq": ["warn", "always", { "null": "ignore" }],
     "func-style": ["error", "expression"],
     "id-length": "off",
     "max-lines": ["warn", { "max": 500, "skipBlankLines": true, "skipComments": true }],
     "max-lines-per-function": "off",
+    "max-params": ["warn", { "max": 4 }],
     "max-statements": "off",
+    "new-cap": ["warn", { "capIsNew": false }],
     "no-alert": "off",
+    "no-await-in-loop": "off",
     "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-continue": "off",
+    "no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
+    "no-eq-null": "off",
     "no-inline-comments": "off",
     "no-magic-numbers": "off",
     "no-nested-ternary": "off",
     "no-plusplus": "off",
     "no-ternary": "off",
     "no-undefined": "off",
+    "no-void": ["warn", { "allowAsStatement": true }],
     "no-warning-comments": "off",
     "capitalized-comments": "off",
     "func-names": "off",
@@ -71,10 +79,13 @@
     "oxc/no-optional-chaining": "off",
     "oxc/no-rest-spread-properties": "off",
     "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
+    "react/jsx-handler-names": "off",
     "react/jsx-max-depth": "off",
     "react/jsx-no-useless-fragment": "off",
     "react/jsx-props-no-spreading": "off",
+    "react/no-unstable-nested-components": ["warn", { "allowAsProps": true }],
     "react/react-in-jsx-scope": "off",
+    "react-perf/jsx-no-jsx-as-prop": "off",
     "react-perf/jsx-no-new-array-as-prop": "off",
     "react-perf/jsx-no-new-function-as-prop": "off",
     "react-perf/jsx-no-new-object-as-prop": "off",
@@ -95,7 +106,8 @@
     "unicorn/no-nested-ternary": "off",
     "unicorn/no-null": "off",
     "unicorn/numeric-separators-style": "off",
-    "unicorn/prefer-global-this": "off"
+    "unicorn/prefer-global-this": "off",
+    "unicorn/prefer-ternary": "off"
   },
   "overrides": [
     {
@@ -103,7 +115,14 @@
       "rules": {
         "react/only-export-components": "off",
         "react/forbid-component-props": "off",
-        "no-use-before-define": "off"
+        "no-use-before-define": "off",
+        "unicorn/prefer-top-level-await": "off"
+      }
+    },
+    {
+      "files": ["apps/mobile/app/**/*.tsx"],
+      "rules": {
+        "unicorn/filename-case": "off"
       }
     },
     {
@@ -117,10 +136,11 @@
       }
     },
     {
-      "files": ["**/*.spec.ts", "**/*.test.ts", "**/vitest.config.ts"],
+      "files": ["**/*.spec.ts", "**/*.test.ts", "**/vitest.config.ts", "apps/api/tests/**/*.ts"],
       "rules": {
         "typescript/no-deprecated": "off",
-        "typescript/no-unsafe-call": "off"
+        "typescript/no-unsafe-call": "off",
+        "import/no-nodejs-modules": "off"
       }
     }
   ]

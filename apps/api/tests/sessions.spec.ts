@@ -32,13 +32,12 @@ const registerUser = async (displayName: string): Promise<AuthResponse> => {
   return res.json();
 };
 
-const authedFetch = (token: string, path: string, init?: RequestInit) =>
+const authedFetch = async (token: string, path: string, init?: RequestInit) =>
   SELF.fetch(`https://example.com${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...init?.headers,
     },
   });
 
@@ -59,7 +58,7 @@ const joinSession = async (token: string, inviteCode: string) => {
   return res;
 };
 
-const uploadPoint = (token: string, sessionId: string, lat: number, lng: number) =>
+const uploadPoint = async (token: string, sessionId: string, lat: number, lng: number) =>
   authedFetch(token, `/sessions/${sessionId}/locations`, {
     method: "POST",
     body: JSON.stringify({ points: [{ capturedAt: Date.now(), lat, lng }] }),

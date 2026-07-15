@@ -26,7 +26,7 @@ if (Platform.OS === "android") {
 }
 
 const sessionIdOf = (notification: Notifications.Notification): string | null => {
-  const sessionId = notification.request.content.data?.["sessionId"];
+  const sessionId = notification.request.content.data?.sessionId;
   return typeof sessionId === "string" ? sessionId : null;
 };
 

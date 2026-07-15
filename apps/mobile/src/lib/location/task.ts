@@ -3,9 +3,11 @@ import * as SecureStore from "expo-secure-store";
 import * as TaskManager from "expo-task-manager";
 
 import { ApiError, apiFetch } from "#/lib/api-client";
-import { MAX_LOCATION_BATCH_SIZE, uploadLocationsResponseSchema } from "@intervalmap/shared";
-
-import type { LocationPointInput } from "@intervalmap/shared";
+import {
+  MAX_LOCATION_BATCH_SIZE,
+  uploadLocationsResponseSchema,
+  type LocationPointInput,
+} from "@intervalmap/shared";
 
 export const LOCATION_TASK_NAME = "intervalmap-location-upload";
 
@@ -82,13 +84,13 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
       body: JSON.stringify({ points: batch }),
     });
     pendingPoints.splice(0, batch.length);
-  } catch (error) {
+  } catch (uploadError) {
     // サーバーがセッション終了を通知したら即時停止する。
-    if (error instanceof ApiError && error.code === "session_ended") {
+    if (uploadError instanceof ApiError && uploadError.code === "session_ended") {
       await stopLocationUpdates();
       return;
     }
     // 通信失敗はキューに残し次回コールバックで再送する。
-    console.warn("位置アップロードに失敗", error);
+    console.warn("位置アップロードに失敗", uploadError);
   }
 });

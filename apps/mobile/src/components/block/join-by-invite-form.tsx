@@ -46,7 +46,9 @@ export const JoinByInviteForm = ({ code }: Props) => {
         Alert.alert("参加に失敗しました", error instanceof Error ? error.message : String(error));
       }
     },
-    () => Alert.alert("入力エラー", "表示名を入力してください"),
+    () => {
+      Alert.alert("入力エラー", "表示名を入力してください");
+    },
   );
 
   return (
@@ -72,7 +74,13 @@ export const JoinByInviteForm = ({ code }: Props) => {
           )}
         />
       </FormSection>
-      <FormButton title="参加する" onPress={onSubmit} disabled={formState.isSubmitting} />
+      <FormButton
+        title="参加する"
+        onPress={() => {
+          void onSubmit();
+        }}
+        disabled={formState.isSubmitting}
+      />
     </>
   );
 };

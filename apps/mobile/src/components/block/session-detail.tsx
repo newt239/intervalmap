@@ -14,14 +14,19 @@ type Props = {
   sessionId: string;
 };
 
+const two = (n: number) => String(n).padStart(2, "0");
+
 // 残り時間の表示フォーマット。負値は 0 に丸める。
 const formatCountdown = (ms: number): string => {
   const total = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const two = (n: number) => String(n).padStart(2, "0");
   return h > 0 ? `${h}:${two(m)}:${two(s)}` : `${m}:${two(s)}`;
+};
+
+const stopSharing = () => {
+  locationTracker.stop().catch(() => {});
 };
 
 // セッション地図画面の実装。表示は最新開示時点のメンバー位置と自分の現在位置のみ。
@@ -74,10 +79,6 @@ export const SessionDetail = ({ sessionId }: Props) => {
     );
   };
 
-  const stopSharing = () => {
-    locationTracker.stop().catch(() => {});
-  };
-
   // 端末時計に依存せず serverNow 基準で残り時間を出す。
   const serverNow = now + mapData.clockOffset;
   const ended = mapData.sessionStatus === "ended";
@@ -91,10 +92,20 @@ export const SessionDetail = ({ sessionId }: Props) => {
           title: detail.session.title,
           headerRight: () => (
             <View style={styles.headerActions}>
-              <Pressable onPress={() => router.push(`/session/${sessionId}/invite`)} hitSlop={8}>
+              <Pressable
+                onPress={() => {
+                  router.push(`/session/${sessionId}/invite`);
+                }}
+                hitSlop={8}
+              >
                 <Text style={[styles.headerAction, { color: theme.tint }]}>招待</Text>
               </Pressable>
-              <Pressable onPress={() => router.push(`/session/${sessionId}/settings`)} hitSlop={8}>
+              <Pressable
+                onPress={() => {
+                  router.push(`/session/${sessionId}/settings`);
+                }}
+                hitSlop={8}
+              >
                 <Text style={[styles.headerAction, { color: theme.tint }]}>設定</Text>
               </Pressable>
             </View>
@@ -113,9 +124,9 @@ export const SessionDetail = ({ sessionId }: Props) => {
           <View>
             <Text style={[styles.countdown, { color: theme.label }]}>
               次回開示まで{" "}
-              {mapData.nextDisclosureAt !== null
-                ? formatCountdown(mapData.nextDisclosureAt - serverNow)
-                : "—"}
+              {mapData.nextDisclosureAt === null
+                ? "—"
+                : formatCountdown(mapData.nextDisclosureAt - serverNow)}
             </Text>
             <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
               終了まで {formatCountdown(detail.session.expiresAt - serverNow)}
@@ -137,7 +148,9 @@ export const SessionDetail = ({ sessionId }: Props) => {
           <Pressable
             key={member.id}
             style={styles.memberRow}
-            onPress={() => router.push(`/session/${sessionId}/member/${member.id}`)}
+            onPress={() => {
+              router.push(`/session/${sessionId}/member/${member.id}`);
+            }}
           >
             <View style={styles.memberText}>
               <Text style={[styles.memberName, { color: theme.label }]}>

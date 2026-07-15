@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, lte, or } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
+import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
 import {
@@ -8,31 +8,33 @@ import {
   joinSessionInputSchema,
   updateMembershipInputSchema,
   uploadLocationsInputSchema,
+  type DisclosedLocation,
+  type HistoryResponse,
+  type MapResponse,
+  type Membership,
+  type MembershipResponse,
+  type Session,
+  type SessionDetailResponse,
+  type SessionListResponse,
+  type SessionWithMembershipResponse,
+  type UploadLocationsResponse,
 } from "@intervalmap/shared";
 
-import { disclosures, locationPoints, memberships, sessions, users } from "../db/schema.ts";
+import {
+  disclosures,
+  locationPoints,
+  memberships,
+  sessions,
+  users,
+  type LocationPointRow,
+  type MembershipRow,
+  type SessionRow,
+} from "../db/schema.ts";
 import { buildDisclosedTrack } from "../domain/history.ts";
+import { reconcileSessionStatus, resolveSessionStatus } from "../domain/session-status.ts";
 import { notifySessionEnd } from "../domain/tick.ts";
 import { jsonError } from "../lib/http-error.ts";
-import { requireAuth } from "../middleware/auth.ts";
-
-import type { LocationPointRow, MembershipRow, SessionRow } from "../db/schema.ts";
-import type { AuthEnv } from "../middleware/auth.ts";
-
-import type {
-  DisclosedLocation,
-  HistoryResponse,
-  MapResponse,
-  Membership,
-  MembershipResponse,
-  Session,
-  SessionDetailResponse,
-  SessionListResponse,
-  SessionWithMembershipResponse,
-  UploadLocationsResponse,
-} from "@intervalmap/shared";
-
-import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { requireAuth, type AuthEnv } from "../middleware/auth.ts";
 
 // D1 のバインドパラメータ上限100を超えないよう位置点の insert を分割する。
 const LOCATION_INSERT_CHUNK = 10;
@@ -72,38 +74,6 @@ const toMembershipDto = (row: MembershipRow, displayName: string): Membership =>
   lastUploadedAt: row.lastUploadedAt,
   joinedAt: row.joinedAt,
 });
-
-// 期限・開始時刻からの権威的なステータス判定。期限判定は expires_at ちょうどを含む。無期限追跡は作らない。
-const resolveSessionStatus = (session: SessionRow, now: number): SessionRow["status"] => {
-  if (session.status !== "ended" && now >= session.expiresAt) {
-    return "ended";
-  }
-  if (session.status === "scheduled" && now >= session.startsAt) {
-    return "active";
-  }
-  return session.status;
-};
-
-// Cron の隙間でも期限後の追跡を許さないための遅延反映。不変条件の二重化。
-const reconcileSessionStatus = async (
-  db: DrizzleD1Database,
-  session: SessionRow,
-  now: number,
-): Promise<SessionRow> => {
-  const resolved = resolveSessionStatus(session, now);
-  if (resolved === session.status) {
-    return session;
-  }
-  if (resolved === "ended") {
-    await db
-      .update(sessions)
-      .set({ status: "ended", nextDisclosureAt: null, endedAt: now })
-      .where(eq(sessions.id, session.id));
-    return { ...session, status: "ended", nextDisclosureAt: null, endedAt: now };
-  }
-  await db.update(sessions).set({ status: resolved }).where(eq(sessions.id, session.id));
-  return { ...session, status: resolved };
-};
 
 const findSessionById = async (db: DrizzleD1Database, id: string): Promise<SessionRow | null> => {
   const [row] = await db.select().from(sessions).where(eq(sessions.id, id)).limit(1);
@@ -466,7 +436,7 @@ export const sessionsRoute = new Hono<AuthEnv>()
 
     // 開示済み位置。disclosure がまだ無ければ誰の位置も返さない。
     // 閲覧オフの本人には他メンバーの位置をサーバー側で返さない。
-    const disclosed: DisclosedLocation[] = [];
+    let disclosed: DisclosedLocation[] = [];
     if (disclosedAt !== null && selfMembership.viewingEnabled) {
       const results = await Promise.all(
         memberRows
@@ -486,11 +456,7 @@ export const sessionsRoute = new Hono<AuthEnv>()
             };
           }),
       );
-      for (const loc of results) {
-        if (loc) {
-          disclosed.push(loc);
-        }
-      }
+      disclosed = results.filter((loc) => loc !== null);
     }
 
     // 自分自身の現在位置は開示を待たずに返す。
@@ -563,20 +529,18 @@ export const sessionsRoute = new Hono<AuthEnv>()
 
       const byMembership = new Map<string, LocationPointRow[]>();
       for (const row of pointRows) {
-        const list = byMembership.get(row.membershipId);
-        if (list) {
-          list.push(row);
-        } else {
-          byMembership.set(row.membershipId, [row]);
-        }
+        const list = byMembership.get(row.membershipId) ?? [];
+        list.push(row);
+        byMembership.set(row.membershipId, list);
       }
 
       for (const r of memberRows) {
         // 共有オフのメンバーの履歴は本人以外に出さない。閲覧オフの本人には他人の履歴を出さない。
-        if (r.membership.id !== selfMembership.id) {
-          if (!r.membership.sharingEnabled || !selfMembership.viewingEnabled) {
-            continue;
-          }
+        if (
+          r.membership.id !== selfMembership.id &&
+          (!r.membership.sharingEnabled || !selfMembership.viewingEnabled)
+        ) {
+          continue;
         }
         const points = buildDisclosedTrack(disclosedAts, byMembership.get(r.membership.id) ?? []);
         if (points.length > 0) {

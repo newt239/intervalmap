@@ -14,16 +14,17 @@ const PERMISSION_LABELS: Record<Location.PermissionStatus, string> = {
 };
 
 const permissionTone = (status: Location.PermissionStatus | undefined) =>
-  status === "granted" ? "success" : "muted";
+  status === Location.PermissionStatus.GRANTED ? "success" : "muted";
 
 export const LocationPermissionSettings = () => {
   // 設定アプリから戻ったときは AppState 連動の再取得で最新の権限状態を映す。
   const { data: permissions, refetch } = useQuery({
     queryKey: ["location-permissions"],
-    queryFn: async () => ({
-      foreground: (await Location.getForegroundPermissionsAsync()).status,
-      background: (await Location.getBackgroundPermissionsAsync()).status,
-    }),
+    queryFn: async () => {
+      const foreground = await Location.getForegroundPermissionsAsync();
+      const background = await Location.getBackgroundPermissionsAsync();
+      return { foreground: foreground.status, background: background.status };
+    },
   });
 
   const onRequestPermission = async () => {
@@ -32,7 +33,12 @@ export const LocationPermissionSettings = () => {
       // OS のダイアログを出せない状態では設定アプリへ誘導する。
       Alert.alert("権限が拒否されています", "設定アプリから位置情報を許可してください", [
         { text: "キャンセル", style: "cancel" },
-        { text: "設定を開く", onPress: () => Linking.openSettings() },
+        {
+          text: "設定を開く",
+          onPress: () => {
+            void Linking.openSettings();
+          },
+        },
       ]);
     }
     await refetch();
@@ -52,10 +58,17 @@ export const LocationPermissionSettings = () => {
           tone={permissionTone(permissions?.background)}
         />
       </FormSection>
-      <FormButton title="権限を確認・リクエスト" onPress={onRequestPermission} />
+      <FormButton
+        title="権限を確認・リクエスト"
+        onPress={() => {
+          void onRequestPermission();
+        }}
+      />
       <FormButton
         title="設定アプリを開く"
-        onPress={() => Linking.openSettings()}
+        onPress={() => {
+          void Linking.openSettings();
+        }}
         variant="secondary"
       />
     </>

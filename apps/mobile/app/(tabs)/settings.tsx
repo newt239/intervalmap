@@ -9,12 +9,24 @@ export default function SettingsScreen() {
   return (
     <FormScreen title="設定">
       <FormSection>
-        <FormLink label="表示名" onPress={() => router.push("/settings/display-name")} />
+        <FormLink
+          label="表示名"
+          onPress={() => {
+            router.push("/settings/display-name");
+          }}
+        />
         <FormLink
           label="位置情報の権限"
-          onPress={() => router.push("/settings/location-permission")}
+          onPress={() => {
+            router.push("/settings/location-permission");
+          }}
         />
-        <FormLink label="通知" onPress={() => router.push("/settings/notifications")} />
+        <FormLink
+          label="通知"
+          onPress={() => {
+            router.push("/settings/notifications");
+          }}
+        />
       </FormSection>
     </FormScreen>
   );
