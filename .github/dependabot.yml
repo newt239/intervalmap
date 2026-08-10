@@ -11,9 +11,14 @@ updates:
       dev-dependencies:
         dependency-type: development
 
+  # ワークフローファイルを触る PR が複数並ぶと GITHUB_TOKEN でマージできなくなるため1本にまとめる。
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
     cooldown:
       default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
