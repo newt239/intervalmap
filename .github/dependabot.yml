@@ -8,10 +8,11 @@ updates:
       default-days: 7
     open-pull-requests-limit: 10
     groups:
+      production-dependencies:
+        dependency-type: production
       dev-dependencies:
         dependency-type: development
 
-  # ワークフローファイルを触る PR が複数並ぶと GITHUB_TOKEN でマージできなくなるため1本にまとめる。
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
