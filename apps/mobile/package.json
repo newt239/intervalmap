@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@expo/log-box": "57.0.0",
-    "@expo/metro-runtime": "57.0.2",
+    "@expo/metro-runtime": "57.0.8",
     "@expo/ui": "57.0.8",
     "@intervalmap/shared": "workspace:*",
     "@tanstack/react-query": "5.101.4",
