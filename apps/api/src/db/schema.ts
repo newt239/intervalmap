@@ -27,6 +27,8 @@ export const sessions = sqliteTable("sessions", {
     .notNull()
     .references(() => users.id),
   title: text("title").notNull(),
+  // セッションに1本の常設招待リンクのコード。再生成すると旧リンクは使えなくなる。
+  inviteCode: text("invite_code").notNull().unique(),
   intervalSec: integer("interval_sec").notNull(),
   startsAt: integer("starts_at").notNull(),
   expiresAt: integer("expires_at").notNull(),
@@ -56,36 +58,12 @@ export const memberships = sqliteTable(
     role: text("role", { enum: ["owner", "member"] })
       .notNull()
       .default("member"),
-    // sharing は自分の位置の共有、viewing は他メンバーの位置の閲覧。どちらも本人が制御する。
-    sharingEnabled: integer("sharing_enabled", { mode: "boolean" }).notNull().default(true),
-    viewingEnabled: integer("viewing_enabled", { mode: "boolean" }).notNull().default(true),
-    // 招待で許可された上限。enabled はこの範囲でのみ有効化できるプライバシー不変条件。
-    // default true は既存メンバーを無制限のまま移行するためで、join 時は必ず招待の値を入れる。
-    allowedSharing: integer("allowed_sharing", { mode: "boolean" }).notNull().default(true),
-    allowedViewing: integer("allowed_viewing", { mode: "boolean" }).notNull().default(true),
     lastUploadedAt: integer("last_uploaded_at"),
     joinedAt: integer("joined_at").notNull(),
+    // 退出時刻。退出後は地図・履歴・アップロードの対象から外れる。
+    leftAt: integer("left_at"),
   },
   (t) => [index("idx_memberships_session").on(t.sessionId)],
-);
-
-export const invites = sqliteTable(
-  "invites",
-  {
-    id: text("id").primaryKey(),
-    sessionId: text("session_id")
-      .notNull()
-      .references(() => sessions.id),
-    // 短命かつ推測不能な招待コード。
-    code: text("code").notNull().unique(),
-    // 招待に含めた権限が参加後の membership の上限になる。プライバシー不変条件。
-    allowSharing: integer("allow_sharing", { mode: "boolean" }).notNull(),
-    allowViewing: integer("allow_viewing", { mode: "boolean" }).notNull(),
-    // 失効は行を消さず revoked_at で管理する。一覧表示と冪等な失効のため。
-    revokedAt: integer("revoked_at"),
-    createdAt: integer("created_at").notNull(),
-  },
-  (t) => [index("idx_invites_session").on(t.sessionId)],
 );
 
 export const locationPoints = sqliteTable(
@@ -136,6 +114,5 @@ export const alerts = sqliteTable("alerts", {
 export type UserRow = typeof users.$inferSelect;
 export type SessionRow = typeof sessions.$inferSelect;
 export type MembershipRow = typeof memberships.$inferSelect;
-export type InviteRow = typeof invites.$inferSelect;
 export type LocationPointRow = typeof locationPoints.$inferSelect;
 export type DisclosureRow = typeof disclosures.$inferSelect;

@@ -131,7 +131,7 @@ export const SessionDetail = ({ sessionId }: Props) => {
                 : formatCountdown(mapData.nextDisclosureAt - serverNow)}
             </Text>
             <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
-              終了まで {formatCountdown(detail.session.expiresAt - serverNow)}
+              主催者が終了するまで共有が続きます
             </Text>
           </View>
         )}
@@ -160,9 +160,7 @@ export const SessionDetail = ({ sessionId }: Props) => {
                 {member.id === selfMembershipId ? "（自分）" : ""}
               </Text>
               <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
-                {`${member.role === "owner" ? "主催" : "参加"} ・ ${
-                  member.sharingEnabled ? "位置共有オン" : "位置共有オフ"
-                }`}
+                {member.role === "owner" ? "主催" : "参加"}
               </Text>
             </View>
             <Text style={[styles.chevron, { color: theme.secondaryLabel }]}>›</Text>
@@ -171,13 +169,7 @@ export const SessionDetail = ({ sessionId }: Props) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        {!ended && selfMembership?.sharingEnabled === false ? (
-          <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
-            位置共有はオフ設定です。ヘッダーの設定から変更できます。
-          </Text>
-        ) : null}
         {!ended &&
-          selfMembership?.sharingEnabled === true &&
           (tracking ? (
             <ActionButton title="共有を停止" onPress={stopSharing} variant="destructive" />
           ) : (

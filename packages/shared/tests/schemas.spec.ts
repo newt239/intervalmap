@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_SESSION_DURATION_SEC, MIN_INTERVAL_SEC } from "../src/constants.ts";
+import { MIN_INTERVAL_SEC } from "../src/constants.ts";
 import { createSessionInputSchema, uploadLocationsInputSchema } from "../src/schemas/index.ts";
 
 // スキーマ配線の疎通確認。開示ロジックのテストは apps/api 側にある。
@@ -8,31 +8,13 @@ describe("createSessionInputSchema", () => {
   const base = {
     title: "ハイキング",
     intervalSec: 300,
-    durationSec: 3600,
     precision: "exact" as const,
   };
 
   it("正常な入力を受理する", () => {
     const parsed = createSessionInputSchema.parse(base);
     expect(parsed.intervalSec).toBe(300);
-    expect(parsed.durationSec).toBe(3600);
-  });
-
-  it("有効期間の上限超過を拒否する", () => {
-    const result = createSessionInputSchema.safeParse({
-      ...base,
-      durationSec: MAX_SESSION_DURATION_SEC + 1,
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("intervalSec より短い durationSec を拒否する", () => {
-    const result = createSessionInputSchema.safeParse({
-      ...base,
-      intervalSec: 3600,
-      durationSec: 300,
-    });
-    expect(result.success).toBe(false);
+    expect(parsed.precision).toBe("exact");
   });
 
   it("インターバル下限未満を拒否する", () => {

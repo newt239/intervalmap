@@ -21,19 +21,19 @@ export const userResponseSchema = z.object({
 });
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
-// 招待コードに含まれた権限が参加後の上限と初期状態を決める。
+// 招待リンクのコードで参加する。参加すれば位置の共有も閲覧もできる。
 export const joinSessionInputSchema = z.object({
   inviteCode: z.string().min(1),
 });
 export type JoinSessionInput = z.infer<typeof joinSessionInputSchema>;
 
-// 自分の共有・閲覧設定の更新。省略したフィールドは変更しない。
-export const updateMembershipInputSchema = z.object({
-  sharingEnabled: z.boolean().optional(),
-  viewingEnabled: z.boolean().optional(),
+// 終了・招待リンク再生成など、セッションのみを返す操作のレスポンス。
+export const sessionResponseSchema = z.object({
+  session: sessionSchema,
 });
-export type UpdateMembershipInput = z.infer<typeof updateMembershipInputSchema>;
+export type SessionResponse = z.infer<typeof sessionResponseSchema>;
 
+// 退出のレスポンス。leftAt が入った自分の membership を返す。
 export const membershipResponseSchema = z.object({
   membership: membershipSchema,
 });

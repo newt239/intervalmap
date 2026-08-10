@@ -2,7 +2,6 @@ import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 
 import { runScheduledTick } from "./domain/tick.ts";
-import { invitesRoute } from "./routes/invites.ts";
 import { meRoute } from "./routes/me.ts";
 import { publicRoute } from "./routes/public.ts";
 import { sessionsRoute } from "./routes/sessions.ts";
@@ -21,7 +20,6 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 app.route("/", publicRoute);
 
 app.route("/users", usersRoute);
-app.route("/sessions", invitesRoute);
 app.route("/sessions", sessionsRoute);
 app.route("/me", meRoute);
 

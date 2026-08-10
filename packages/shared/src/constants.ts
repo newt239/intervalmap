@@ -13,11 +13,8 @@ export const NO_RESPONSE_ALERT_COOLDOWN_SEC = 600;
 export const MIN_INTERVAL_SEC = 30;
 export const MAX_INTERVAL_SEC = 24 * 60 * 60;
 
-// セッションの最大有効期間秒数。無期限追跡を作らないための上限。
-export const MAX_SESSION_DURATION_SEC = 30 * 24 * 60 * 60;
-
-// セッションの最小有効期間秒数。
-export const MIN_SESSION_DURATION_SEC = 60;
+// セッションの有効期間秒数。ユーザーは設定せず、サーバーが安全網として必ず付与する。
+export const MAX_SESSION_DURATION_SEC = 7 * 24 * 60 * 60;
 
 // 招待コードの文字数。短命かつ推測不能であること。
 export const INVITE_CODE_LENGTH = 10;

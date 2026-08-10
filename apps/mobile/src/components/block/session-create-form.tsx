@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Alert } from "react-native";
+import { Alert, Share } from "react-native";
 
 import { Controller, useForm } from "react-hook-form";
 
@@ -9,9 +9,9 @@ import { FormSection } from "#/components/ui/form-section";
 import { FormTextField } from "#/components/ui/form-text-field";
 import { apiFetch } from "#/lib/api-client";
 import { useAuth } from "#/lib/queries";
-import { sessionWithMembershipResponseSchema } from "@intervalmap/shared";
+import { INVITE_URL_BASE, sessionWithMembershipResponseSchema } from "@intervalmap/shared";
 
-// 開示インターバルとセッション有効期間のプリセット。
+// 開示インターバルのプリセット。終了は主催者が手動で行うため期間は選ばせない。
 const INTERVAL_OPTIONS = [
   { label: "30秒", value: 30 },
   { label: "1分", value: 60 },
@@ -20,28 +20,20 @@ const INTERVAL_OPTIONS = [
   { label: "1時間", value: 3600 },
 ];
 
-const DURATION_OPTIONS = [
-  { label: "30分", value: 1800 },
-  { label: "1時間", value: 3600 },
-  { label: "3時間", value: 10800 },
-  { label: "24時間", value: 86400 },
-];
-
 type FormValues = {
   title: string;
   intervalSec: number;
-  durationSec: number;
 };
 
 export const SessionCreateForm = () => {
   const router = useRouter();
   const { data: auth } = useAuth();
   const { control, handleSubmit, formState } = useForm<FormValues>({
-    defaultValues: { title: "", intervalSec: 300, durationSec: 3600 },
+    defaultValues: { title: "", intervalSec: 300 },
   });
 
   const onSubmit = handleSubmit(
-    async ({ title, intervalSec, durationSec }) => {
+    async ({ title, intervalSec }) => {
       if (!auth) {
         Alert.alert("表示名が未登録です", "わたしタブで表示名を登録してください");
         return;
@@ -50,9 +42,16 @@ export const SessionCreateForm = () => {
         const res = await apiFetch(sessionWithMembershipResponseSchema, "/sessions", {
           method: "POST",
           token: auth.token,
-          body: JSON.stringify({ title: title.trim(), intervalSec, durationSec }),
+          body: JSON.stringify({ title: title.trim(), intervalSec }),
         });
-        router.push(`/session/${res.session.id}`);
+        // 作成直後にそのまま招待リンクを配れるようにする。キャンセルしても詳細へ進む。
+        if (res.session.inviteCode !== null) {
+          const url = `${INVITE_URL_BASE}/join/${res.session.inviteCode}`;
+          await Share.share({ message: `「${res.session.title}」に参加してください ${url}` }).catch(
+            () => {},
+          );
+        }
+        router.replace(`/session/${res.session.id}`);
       } catch (error) {
         Alert.alert("作成に失敗しました", error instanceof Error ? error.message : String(error));
       }
@@ -64,7 +63,7 @@ export const SessionCreateForm = () => {
 
   return (
     <>
-      <FormSection title="セッションを作成" footer="期限が来ると追跡は自動的に停止します">
+      <FormSection title="セッションを作成" footer="作成すると招待リンクをすぐに共有できます">
         <Controller
           control={control}
           name="title"
@@ -85,18 +84,6 @@ export const SessionCreateForm = () => {
             <FormPicker
               label="開示インターバル"
               options={INTERVAL_OPTIONS}
-              selected={field.value}
-              onSelect={field.onChange}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="durationSec"
-          render={({ field }) => (
-            <FormPicker
-              label="有効期間"
-              options={DURATION_OPTIONS}
               selected={field.value}
               onSelect={field.onChange}
             />

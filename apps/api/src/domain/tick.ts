@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNotNull, lte, ne, notExists, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNotNull, isNull, lte, ne, notExists, sql } from "drizzle-orm";
 
 import {
   DEFAULT_HISTORY_RETENTION_DAYS,
@@ -35,7 +35,7 @@ export const advanceNextDisclosureAt = (
   return nextDisclosureAt + missed * intervalMs;
 };
 
-// セッション全メンバーの Expo Push token を集める。
+// 参加中メンバーの Expo Push token を集める。退出済みには通知しない。
 const findMemberPushTokens = async (
   db: DrizzleD1Database,
   sessionId: string,
@@ -44,7 +44,7 @@ const findMemberPushTokens = async (
     .select({ expoPushToken: pushTokens.expoPushToken })
     .from(memberships)
     .innerJoin(pushTokens, eq(memberships.userId, pushTokens.userId))
-    .where(eq(memberships.sessionId, sessionId));
+    .where(and(eq(memberships.sessionId, sessionId), isNull(memberships.leftAt)));
   return rows.map((r) => r.expoPushToken);
 };
 
@@ -161,7 +161,7 @@ export const runScheduledTick = async (
     }
   }
 
-  // 無応答アラート。共有オンなのに interval×3 を超えて位置が届かないメンバーを主催者へ通知する。
+  // 無応答アラート。参加中なのに interval×3 を超えて位置が届かないメンバーを主催者へ通知する。
   const active = await db.select().from(sessions).where(eq(sessions.status, "active"));
   for (const session of active) {
     const staleThreshold = now - session.intervalSec * NO_RESPONSE_INTERVAL_MULTIPLIER * 1000;
@@ -172,7 +172,7 @@ export const runScheduledTick = async (
       .where(
         and(
           eq(memberships.sessionId, session.id),
-          eq(memberships.sharingEnabled, true),
+          isNull(memberships.leftAt),
           isNotNull(memberships.lastUploadedAt),
           lte(memberships.lastUploadedAt, staleThreshold),
         ),

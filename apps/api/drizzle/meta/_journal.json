@@ -36,6 +36,20 @@
       "when": 1784097067111,
       "tag": "0004_tan_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786371828742,
+      "tag": "0005_drop_membership_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786371874753,
+      "tag": "0006_add_membership_left_at",
+      "breakpoints": true
     }
   ]
 }

@@ -14,13 +14,6 @@ import type { ScreenListItem } from "#/components/ui/screen-list/types";
 
 const STATUS_LABELS = { scheduled: "開始前", active: "共有中", ended: "終了" } as const;
 
-const formatRemaining = (ms: number): string => {
-  const totalMin = Math.max(0, Math.floor(ms / 60_000));
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return h > 0 ? `残り ${h}時間${m}分` : `残り ${m}分`;
-};
-
 export const SessionList = () => {
   const router = useRouter();
   const theme = useTheme();
@@ -40,11 +33,7 @@ export const SessionList = () => {
   const items: ScreenListItem[] = (list?.sessions ?? []).map((item) => ({
     id: item.session.id,
     title: item.session.title,
-    subtitle:
-      (item.membership.role === "owner" ? "主催" : "参加") +
-      (item.session.status === "active" && list
-        ? ` ・ ${formatRemaining(item.session.expiresAt - list.serverNow)}`
-        : ""),
+    subtitle: item.membership.role === "owner" ? "主催" : "参加",
     status: {
       label: STATUS_LABELS[item.session.status],
       tone: item.session.status === "active" ? "active" : "muted",

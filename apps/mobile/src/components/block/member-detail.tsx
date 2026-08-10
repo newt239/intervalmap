@@ -58,9 +58,7 @@ export const MemberDetail = ({ sessionId, membershipId }: Props) => {
       <Stack.Screen options={{ title: member.displayName }} />
       <View style={styles.header}>
         <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
-          {`${member.role === "owner" ? "主催" : "参加"} ・ ${
-            member.sharingEnabled ? "位置共有オン" : "位置共有オフ"
-          } ・ 参加 ${formatDateTime(member.joinedAt)}`}
+          {`${member.role === "owner" ? "主催" : "参加"} ・ 参加 ${formatDateTime(member.joinedAt)}`}
         </Text>
         <Text style={[styles.meta, { color: theme.secondaryLabel }]}>
           {location
