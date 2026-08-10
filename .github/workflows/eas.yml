@@ -20,7 +20,6 @@ on:
           - production
 
 jobs:
-  # EXPO_TOKEN 未登録のリポジトリでジョブを失敗させずスキップするためのゲート。
   guard:
     runs-on: ubuntu-latest
     outputs:
