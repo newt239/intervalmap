@@ -30,7 +30,7 @@
     "expo-task-manager": "57.0.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-hook-form": "7.80.0",
+    "react-hook-form": "7.84.0",
     "react-native": "0.86.0",
     "react-native-qrcode-svg": "6.3.21",
     "react-native-safe-area-context": "5.8.0",
