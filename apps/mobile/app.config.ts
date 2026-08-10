@@ -52,6 +52,7 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
+    reactCompiler: true,
   },
   extra: {
     // EAS プロジェクト ID は eas init 時に自動注入される。
