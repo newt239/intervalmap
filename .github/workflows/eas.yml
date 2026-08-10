@@ -20,9 +20,20 @@ on:
           - production
 
 jobs:
+  # EXPO_TOKEN 未登録のリポジトリでジョブを失敗させずスキップするためのゲート。
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      has-token: ${{ steps.check.outputs.has-token }}
+    steps:
+      - name: Check EXPO_TOKEN
+        id: check
+        run: echo "has-token=${{ secrets.EXPO_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
   build:
     # native ビルドはタグ push か手動のみ。main への通常マージでは走らせない。
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    needs: guard
+    if: needs.guard.outputs.has-token == 'true' && (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,7 +61,8 @@ jobs:
 
   # native 変更を含まない JS のみの更新を main マージ時に OTA 配信する。
   update:
-    if: github.ref == 'refs/heads/main'
+    needs: guard
+    if: needs.guard.outputs.has-token == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     defaults:
       run:

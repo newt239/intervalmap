@@ -10,7 +10,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Cloudflare のシークレット未登録のリポジトリでジョブを失敗させずスキップするためのゲート。
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      has-token: ${{ steps.check.outputs.has-token }}
+    steps:
+      - name: Check Cloudflare secrets
+        id: check
+        run: echo "has-token=${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}" >> "$GITHUB_OUTPUT"
+
   deploy:
+    needs: guard
+    if: needs.guard.outputs.has-token == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
