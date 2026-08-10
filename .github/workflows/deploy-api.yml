@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Cloudflare のシークレット未登録のリポジトリでジョブを失敗させずスキップするためのゲート。
   guard:
     runs-on: ubuntu-latest
     outputs:
