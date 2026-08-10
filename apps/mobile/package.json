@@ -16,7 +16,7 @@
     "@expo/metro-runtime": "57.0.2",
     "@expo/ui": "57.0.2",
     "@intervalmap/shared": "workspace:*",
-    "@tanstack/react-query": "5.101.2",
+    "@tanstack/react-query": "5.101.4",
     "@types/react": "19.2.17",
     "expo": "57.0.1",
     "expo-constants": "57.0.2",
