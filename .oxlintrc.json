@@ -85,6 +85,7 @@
     "react/jsx-no-literals": "off",
     "react/jsx-no-useless-fragment": "off",
     "react/jsx-props-no-spreading": "off",
+    "react/no-multi-comp": "off",
     "react/no-unstable-nested-components": ["warn", { "allowAsProps": true }],
     "react/react-compiler": "off",
     "react/react-in-jsx-scope": "off",
@@ -126,8 +127,7 @@
     {
       "files": ["apps/mobile/app/**/*.tsx"],
       "rules": {
-        "unicorn/filename-case": "off",
-        "react/function-component-definition": "off"
+        "unicorn/filename-case": "off"
       }
     },
     {

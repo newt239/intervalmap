@@ -41,11 +41,10 @@ const RootNavigator = () => {
 };
 
 // useAuth は QueryClientProvider の内側でしか呼べないためナビゲータと分ける。
-// oxlint-disable-next-line react/no-multi-comp
-export default function RootLayout() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <RootNavigator />
-    </QueryClientProvider>
-  );
-}
+const RootLayout = () => (
+  <QueryClientProvider client={queryClient}>
+    <RootNavigator />
+  </QueryClientProvider>
+);
+
+export default RootLayout;

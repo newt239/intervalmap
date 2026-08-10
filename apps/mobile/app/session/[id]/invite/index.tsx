@@ -2,7 +2,9 @@ import { useLocalSearchParams } from "expo-router";
 
 import { SessionInvite } from "#/components/block/session-invite";
 
-export default function SessionInviteScreen() {
+const SessionInviteScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   return <SessionInvite sessionId={id} />;
-}
+};
+
+export default SessionInviteScreen;

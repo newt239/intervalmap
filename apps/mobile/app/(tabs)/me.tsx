@@ -4,7 +4,7 @@ import { FormLink } from "#/components/ui/form-link";
 import { FormScreen } from "#/components/ui/form-screen";
 import { FormSection } from "#/components/ui/form-section";
 
-export default function MeScreen() {
+const MeScreen = () => {
   const router = useRouter();
   return (
     <FormScreen title="わたし">
@@ -38,4 +38,6 @@ export default function MeScreen() {
       </FormSection>
     </FormScreen>
   );
-}
+};
+
+export default MeScreen;
