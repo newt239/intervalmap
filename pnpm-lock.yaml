@@ -112,8 +112,8 @@ importers:
         specifier: 57.0.0
         version: 57.0.0(expo@57.0.1)
       expo-task-manager:
-        specifier: 57.0.1
-        version: 57.0.1(expo@57.0.1)(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2))
+        specifier: 57.0.7
+        version: 57.0.7(expo@57.0.1)(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2))
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -3231,8 +3231,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  expo-task-manager@57.0.1:
-    resolution: {integrity: sha512-UVpTu5WaOInLbxg3W5+gSUVyap6nptSHcrGCIrxIg/IiHZa487OiSUCyxlDiwQ/jrZPfNiYbPFSNDP26i51+LQ==}
+  expo-task-manager@57.0.7:
+    resolution: {integrity: sha512-ePnBVrkntuxV0XPKhMlJoMyqMH4K3OGrUfqajf/3UzVjfTB2ARmR3ExtB996EAtrsAQ8fREvZrdhbBAnDSiRAg==}
     peerDependencies:
       expo: '*'
       react-native: '*'
@@ -4528,8 +4528,8 @@ packages:
     resolution: {integrity: sha512-hpbDzxUY9BFwX+UeBnxv3Sh1q7HFxj48DTmXchNgRa46lO8uj3/1iEn3MiNUYTg1g9ctIqXCCERn8gYZhHC5lQ==}
     engines: {node: '>=4'}
 
-  unimodules-app-loader@57.0.0:
-    resolution: {integrity: sha512-1hHiDvLMu4dwTnFzEjFKa/HS6TvTrO4qdbFWyPENCElab5BqeATMPLP1NtNPE4p2pwiJveVHuq6qmjDvdfj7VA==}
+  unimodules-app-loader@57.0.1:
+    resolution: {integrity: sha512-wey5ChoJkCTq0j0JWdIMu2QB81vVrdhmrNAP14ZZ6WDslnZ7ff7Ezv8rMdEnVHaCKz3xK4mIVXbVU51xHgdyCA==}
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -6099,7 +6099,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 25.9.3
+      '@types/node': 26.1.2
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -7688,11 +7688,11 @@ snapshots:
       react-native: 0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2)
       sf-symbols-typescript: 2.2.0
 
-  expo-task-manager@57.0.1(expo@57.0.1)(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2)):
+  expo-task-manager@57.0.7(expo@57.0.1)(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2)):
     dependencies:
       expo: 57.0.1(@babel/core@7.29.7(supports-color@10.2.2))(@expo/dom-webview@57.0.0)(@expo/metro-runtime@57.0.2)(expo-router@57.0.2)(react-dom@19.2.3(react@19.2.3))(react-native-worklets@0.10.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(react-native@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)(typescript@6.0.3)
       react-native: 0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.86.0(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.17)(react@19.2.3)(supports-color@10.2.2)
-      unimodules-app-loader: 57.0.0
+      unimodules-app-loader: 57.0.1
 
   expo-updates-interface@57.0.0(expo@57.0.1):
     dependencies:
@@ -7903,7 +7903,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 25.9.3
+      '@types/node': 26.1.2
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -7920,7 +7920,7 @@ snapshots:
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 25.9.3
+      '@types/node': 26.1.2
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -9115,7 +9115,7 @@ snapshots:
 
   unicode-property-aliases-ecmascript@2.2.0: {}
 
-  unimodules-app-loader@57.0.0: {}
+  unimodules-app-loader@57.0.1: {}
 
   unpipe@1.0.0: {}
 
