@@ -15,7 +15,7 @@
   "dependencies": {
     "@intervalmap/shared": "workspace:*",
     "drizzle-orm": "0.45.2",
-    "hono": "4.12.34"
+    "hono": "4.13.1"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.20.1",
