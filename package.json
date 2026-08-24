@@ -17,7 +17,7 @@
   "devDependencies": {
     "@ls-lint/ls-lint": "2.3.1",
     "@types/node": "26.2.0",
-    "knip": "6.32.1",
+    "knip": "6.32.2",
     "lefthook": "2.1.10",
     "oxfmt": "0.63.0",
     "oxlint": "1.78.0",
