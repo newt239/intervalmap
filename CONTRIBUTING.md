@@ -4,7 +4,7 @@
 
 ## 前提
 
-- macOS。Node は [.node-version](.node-version) 固定、パッケージマネージャは pnpm 11 固定。
+- macOS。Node とパッケージマネージャ pnpm は [package.json](package.json) の `devEngines` / `packageManager` で固定。
 - iOS 開発: Xcode（App Store から）と iOS シミュレータランタイム。
 - Android 開発: Android Studio と SDK。
 - 実機検証・dev client ビルド: Expo アカウント。

@@ -46,7 +46,7 @@ newt239/next-template を踏襲する。
 
 - **ESLint / Prettier は使わない**。oxlint + oxfmt に統一。
 - **依存は完全固定**。`^` や `~` を付けない。`saveExact: true`。パッケージマネージャは pnpm 固定。
-- Node.js は `.node-version` で固定し、CI もこれを参照する。
+- Node.js は `package.json` の `devEngines.runtime` で固定し、CI もこれを参照する。
 - TypeScript strict。`noUncheckedIndexedAccess` 等も有効。`interface` ではなく `type` を使う。
 - ファイル命名は kebab-case。`.md` は SCREAMING_SNAKE_CASE も可、`apps/api/drizzle` の `.sql` は snake_case、expo-router の特殊名 `_layout` / `[code]` / `+not-found` は許可。
 - 時刻はすべて epoch ミリ秒で扱い、端末時計に依存させない。カウントダウンは `next_disclosure_at` 基準。
