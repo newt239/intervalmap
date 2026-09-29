@@ -11,6 +11,14 @@ updates:
       # @cloudflare/vitest-pool-workers が vitest 4 までしか対応していない
       - dependency-name: vitest
         update-types: ["version-update:semver-major"]
+      # Expo SDK が版を指定するため SDK 更新時に expo install --fix で上げる
+      - dependency-name: react
+      - dependency-name: react-dom
+      - dependency-name: "@types/react"
+      - dependency-name: react-native
+      - dependency-name: react-native-safe-area-context
+      - dependency-name: react-native-screens
+      - dependency-name: react-native-svg
     groups:
       production-dependencies:
         dependency-type: production
