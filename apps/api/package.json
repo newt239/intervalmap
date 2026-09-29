@@ -14,15 +14,15 @@
   },
   "dependencies": {
     "@intervalmap/shared": "workspace:*",
-    "drizzle-orm": "0.45.2",
-    "hono": "4.12.34"
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.8"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.20.1",
-    "@cloudflare/workers-types": "5.20260801.1",
-    "drizzle-kit": "0.31.10",
+    "@cloudflare/vitest-pool-workers": "0.20.3",
+    "@cloudflare/workers-types": "5.20260922.1",
+    "drizzle-kit": "0.31.11",
     "typescript": "7.0.2",
-    "vitest": "4.1.10",
-    "wrangler": "4.118.0"
+    "vitest": "4.1.11",
+    "wrangler": "4.136.1"
   }
 }
