@@ -57,6 +57,7 @@
     "no-undefined": "off",
     "no-void": ["warn", { "allowAsStatement": true }],
     "no-warning-comments": "off",
+    "one-var": "off",
     "capitalized-comments": "off",
     "func-names": "off",
     "require-await": "off",
@@ -136,6 +137,7 @@
         "import/no-nodejs-modules": "off",
         "import/unambiguous": "off",
         "typescript/no-require-imports": "off",
+        "typescript/no-var-requires": "off",
         "unicorn/prefer-module": "off"
       }
     },
