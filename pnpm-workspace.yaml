@@ -7,9 +7,4 @@ allowBuilds:
   sharp: true
   workerd: true
 minimumReleaseAge: 10080
-minimumReleaseAgeExclude:
-  - "@expo/ui@57.0.2"
-  - expo-dev-client@57.0.4
-  - expo-dev-launcher@57.0.4
-  - expo-dev-menu@57.0.4
 saveExact: true

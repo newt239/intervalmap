@@ -2,7 +2,7 @@
 
 位置情報インターバル共有アプリ。主催者がセッションを作成し「開示インターバル」を設定する。参加者の位置は**継続的に取得されつつ、設定間隔ごとにのみ**グループへ開示され、主催者が終了させるか安全網の期限に達すると追跡は完全に停止する。用途は家族の見守り・イベント運営・登山/マラソンの応援など。
 
-- 開発規約とコマンド一覧: [AGENTS.md](AGENTS.md)（CLAUDE.md と同一）
+- 開発規約とコマンド一覧: [AGENTS.md](AGENTS.md)
 - 環境構築・エミュレータ・実機検証: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 設計思想
@@ -22,9 +22,9 @@
 ## クイックスタート
 
 ```sh
-pnpm install        # Node は .node-version、pnpm 11 固定
+pnpm install        # Node と pnpm は package.json で固定
 pnpm prepare        # Git フック（lefthook）を有効化
-pnpm codecheck      # typecheck → lint → format → ls-lint → knip
+pnpm codecheck      # typecheck → lint → format → knip
 pnpm test           # 全ワークスペースの Vitest
 ```
 

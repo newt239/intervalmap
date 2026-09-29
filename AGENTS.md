@@ -27,18 +27,18 @@ packages/shared/ Zod スキーマ + API 型 + 定数。API 境界の単一真実
 
 ## コマンド
 
-| コマンド                                     | 内容                                                                            |
-| -------------------------------------------- | ------------------------------------------------------------------------------- |
-| `pnpm install`                               | 依存インストール。pnpm 以外は preinstall の only-allow で拒否                   |
-| `pnpm codecheck`                             | typecheck → lint → format → ls-lint → knip を直列実行。**コミット前に必ず通す** |
-| `pnpm test`                                  | 全ワークスペースの Vitest                                                       |
-| `pnpm lint` / `pnpm lint:fix`                | oxlint。type-aware                                                              |
-| `pnpm format` / `pnpm format:fix`            | oxfmt                                                                           |
-| `pnpm --filter @intervalmap/api dev`         | Worker ローカル起動                                                             |
-| `pnpm --filter @intervalmap/api db:generate` | Drizzle マイグレーション SQL 生成                                               |
-| `pnpm --filter @intervalmap/mobile start`    | Expo dev サーバ                                                                 |
+| コマンド                                     | 内容                                                                  |
+| -------------------------------------------- | --------------------------------------------------------------------- |
+| `pnpm install`                               | 依存インストール。pnpm 以外は preinstall の only-allow で拒否         |
+| `pnpm codecheck`                             | typecheck → lint → format → knip を直列実行。**コミット前に必ず通す** |
+| `pnpm test`                                  | 全ワークスペースの Vitest                                             |
+| `pnpm lint` / `pnpm lint:fix`                | oxlint。type-aware                                                    |
+| `pnpm format` / `pnpm format:fix`            | oxfmt                                                                 |
+| `pnpm --filter @intervalmap/api dev`         | Worker ローカル起動                                                   |
+| `pnpm --filter @intervalmap/api db:generate` | Drizzle マイグレーション SQL 生成                                     |
+| `pnpm --filter @intervalmap/mobile start`    | Expo dev サーバ                                                       |
 
-Git フックは lefthook。`pnpm prepare` で install。pre-commit は lint/format/ls-lint、pre-push は codecheck。
+Git フックは lefthook。`pnpm prepare` で install。pre-commit は lint/format、pre-push は codecheck。
 
 ## コード規約
 
@@ -46,9 +46,9 @@ newt239/next-template を踏襲する。
 
 - **ESLint / Prettier は使わない**。oxlint + oxfmt に統一。
 - **依存は完全固定**。`^` や `~` を付けない。`saveExact: true`。パッケージマネージャは pnpm 固定。
-- Node.js は `.node-version` で固定し、CI もこれを参照する。
+- Node.js は `package.json` の `devEngines.runtime` で固定し、CI もこれを参照する。
 - TypeScript strict。`noUncheckedIndexedAccess` 等も有効。`interface` ではなく `type` を使う。
-- ファイル命名は kebab-case。`.md` は SCREAMING_SNAKE_CASE も可、`apps/api/drizzle` の `.sql` は snake_case、expo-router の特殊名 `_layout` / `[code]` / `+not-found` は許可。ls-lint で強制。
+- ファイル命名は kebab-case。`.md` は SCREAMING_SNAKE_CASE も可、`apps/api/drizzle` の `.sql` は snake_case、expo-router の特殊名 `_layout` / `[code]` / `+not-found` は許可。
 - 時刻はすべて epoch ミリ秒で扱い、端末時計に依存させない。カウントダウンは `next_disclosure_at` 基準。
 
 ### 抽象化の抑制
