@@ -24,7 +24,7 @@
 ```sh
 pnpm install        # Node は .node-version、pnpm 11 固定
 pnpm prepare        # Git フック（lefthook）を有効化
-pnpm codecheck      # typecheck → lint → format → ls-lint → knip
+pnpm codecheck      # typecheck → lint → format → knip
 pnpm test           # 全ワークスペースの Vitest
 ```
 

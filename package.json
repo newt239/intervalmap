@@ -3,19 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "codecheck": "pnpm run typecheck && pnpm run lint && pnpm run format && pnpm run ls-lint && pnpm run knip",
+    "codecheck": "pnpm run typecheck && pnpm run lint && pnpm run format && pnpm run knip",
     "format": "oxfmt --check",
     "format:fix": "oxfmt",
     "knip": "knip",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix",
-    "ls-lint": "ls-lint",
     "prepare": "lefthook install",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "@ls-lint/ls-lint": "2.3.1",
     "@types/node": "26.1.2",
     "knip": "6.31.0",
     "lefthook": "2.1.10",
